@@ -1,14 +1,38 @@
+import { Types } from 'mongoose'
+
+/* =============================== Product Interface ================================ */
 export interface IProduct {
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  category: string;
-  images?: string[];
+  productID?: string
+
+  name: string
+  description: string
+
+  category: Types.ObjectId
+  brand?: string | null
+
+  price: number
+  discount?: number
+
+  stock: number
+
+  images: string[]
+
+  isTrending: boolean
+  isFlashDeal: boolean
+  isCombo: boolean
+
+  tags: string[]
+
+  createdAt?: Date
+  updatedAt?: Date
 }
 
-export interface ICategory{
-  name:string,
-  slug:string,
-  icon:string
+/* =============================== Category Interface ================================ */
+export interface ICategory {
+  name: string
+  slug: string
+  icon?: string | null
+  isActive: boolean
+  createdAt?: Date
+  updatedAt?: Date
 }
