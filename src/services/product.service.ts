@@ -6,7 +6,7 @@ import { IPagination } from '../types/query.type'
 export const createProductService = async (data: IProduct) => {
   return await Product.create({
     ...data,
-    images: [], // ✅ default set
+    images: [],
   })
 }
 
@@ -17,6 +17,7 @@ export const getAllProductsService = async ({ page, limit, select }: IPagination
   const total_product = await Product.countDocuments()
   const products = await Product.find()
     .select(select || '')
+
     .skip(skip)
     .limit(limit)
 
@@ -39,10 +40,7 @@ export const getSingleProductService = async (id: string) => {
 }
 /* =============================== update single product  business logic ================================ */
 /* =============================== update product business logic ================================ */
-export const updatProductService = async (
-  id: string,
-  payload: Partial<IProduct>
-) => {
+export const updatProductService = async (id: string, payload: Partial<IProduct>) => {
   return await Product.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,

@@ -17,6 +17,9 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
       })
     }
 
+    console.log(name);
+    
+
     const user = await registerUserService(name, email, password, phone)
     res.status(201).json({
       success: true,
@@ -55,7 +58,6 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
       httpOnly: true,
       secure: false, // REQUIRED for SameSite=None
       sameSite: 'lax',
-      path: '/', // REQUIRED for cross-origin
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
 

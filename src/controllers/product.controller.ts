@@ -9,10 +9,8 @@ import {
 import { multipleImageUploadService } from '../services/image.upload.service'
 import Product from '../models/Product.model'
 
-/* =============================== product create controller ================================ */
 export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    /* =============================== Request Body Destructuring ================================ */
     const {
       name,
       description,
@@ -25,9 +23,9 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       isFlashDeal,
       isCombo,
       tags,
+      status,
     } = req.body
 
-    /* =============================== Basic Validation ================================ */
     if (!name || !description || !price || !stock || !category) {
       return res.status(400).json({
         success: false,
@@ -37,8 +35,15 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 
     const productID = `PRD-${nanoid(8).toUpperCase()}`
 
-    const perceTags = tags ? JSON.parse(tags) : []
-    /* =============================== Create Product ================================ */
+    /* =============================== FIXED TAG PARSING ================================ */
+    let parsedTags: string[] = []
+
+    if (Array.isArray(tags)) {
+      parsedTags = tags
+    } else if (typeof tags === 'string' && tags.length > 0) {
+      parsedTags = [tags]
+    }
+
     const product = await createProductService({
       productID,
       name,
@@ -51,18 +56,20 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       isTrending,
       isFlashDeal,
       isCombo,
-      tags: perceTags,
+      tags: parsedTags,
       images: [],
+      status,
     })
-    console.log('product ', product)
 
-    /* =============================== Image Upload ================================ */
+    console.log('body:', req.body)
+    console.log('files:', req.files)
+    console.log('raw files key exists?', 'files' in req.body)
+
     if (req.files && Array.isArray(req.files)) {
       const files = req.files as Express.Multer.File[]
       await multipleImageUploadService(files, product._id.toString())
     }
 
-    /* =============================== Response ================================ */
     res.status(201).json({
       success: true,
       data: product,
@@ -71,7 +78,6 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
     next(error)
   }
 }
-
 /* =============================== get all products controller ================================ */
 export const getAllProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -176,8 +182,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
 
     /* =============================== Update Product ================================ */
     const product = await updatProductService(id, updatePayload)
-    console.log('updated ',product);
-    
+
     if (!product) {
       return res.status(404).json({
         success: false,

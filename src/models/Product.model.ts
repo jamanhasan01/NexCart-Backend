@@ -18,8 +18,7 @@ const productSchema = new mongoose.Schema<IProduct>(
     },
 
     category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
+      type: String,
       required: true,
     },
 
@@ -86,7 +85,13 @@ const productSchema = new mongoose.Schema<IProduct>(
       type: [String],
       default: [],
     },
+    status: {
+      type: String,
+      enum: ['active', 'inactive', 'draft', 'archived'],
+      default: 'draft',
+    },
   },
+
   {
     timestamps: true,
   },

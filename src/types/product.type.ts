@@ -1,5 +1,5 @@
 import { Types } from 'mongoose'
-
+export type ProductStatus = 'active' | 'inactive' | 'draft' | 'archived'
 /* =============================== Product Interface ================================ */
 export interface IProduct {
   productID?: string
@@ -7,7 +7,7 @@ export interface IProduct {
   name: string
   description: string
 
-  category: Types.ObjectId
+  category: string
   brand?: string | null
 
   price: number
@@ -22,7 +22,7 @@ export interface IProduct {
   isCombo: boolean
 
   tags: string[]
-
+  status: ProductStatus
   createdAt?: Date
   updatedAt?: Date
 }
