@@ -59,7 +59,7 @@ const productSchema = new mongoose.Schema<IProduct>(
         },
       },
     ],
-
+    thumbnail: { type: String },
     stock: {
       type: Number,
       required: true,

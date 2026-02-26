@@ -16,7 +16,7 @@ export interface IProduct {
   stock: number
 
   images: string[]
-
+  thumbnail: string
   isTrending: boolean
   isFlashDeal: boolean
   isCombo: boolean

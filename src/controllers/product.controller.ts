@@ -58,12 +58,9 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       isCombo,
       tags: parsedTags,
       images: [],
+      thumbnail: '',
       status,
     })
-
-    console.log('body:', req.body)
-    console.log('files:', req.files)
-    console.log('raw files key exists?', 'files' in req.body)
 
     if (req.files && Array.isArray(req.files)) {
       const files = req.files as Express.Multer.File[]

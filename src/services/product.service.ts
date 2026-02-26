@@ -7,6 +7,7 @@ export const createProductService = async (data: IProduct) => {
   return await Product.create({
     ...data,
     images: [],
+    thumbnail: '',
   })
 }
 
