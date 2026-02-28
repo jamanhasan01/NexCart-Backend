@@ -15,11 +15,20 @@ dotenv.config()
 
 const app = express()
 /* =============================== CORS CONFIG ================================ */
+/* =============================== CORS CONFIG ================================ */
+const allowedOrigins = ['http://localhost:3000', 'https://zuniva-frontend.vercel.app']
+
 app.use(
   cors({
-    origin: ['http://localhost:3000','https://zuniva-frontend.vercel.app'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   }),
 )
 
