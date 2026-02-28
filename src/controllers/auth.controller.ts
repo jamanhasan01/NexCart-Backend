@@ -51,13 +51,18 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     })
 
     /* =============================== set cookie ================================ */
+    // res.cookie('accessToken', token, {
+    //   httpOnly: true,
+    //   secure: false, // REQUIRED for SameSite=None
+    //   sameSite: 'lax',
+    //   maxAge: 7 * 24 * 60 * 60 * 1000,
+    // })
     res.cookie('accessToken', token, {
       httpOnly: true,
-      secure: false, // REQUIRED for SameSite=None
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
-
     res.status(200).json({ success: true, message: 'Login successfully' })
   } catch (error) {
     next(error)
@@ -66,7 +71,6 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 /* =============================== me controller (current login user data) ================================ */
 export const getMe = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const userId = req.user?.userId
-
 
   if (!userId) {
     return res.status(404).json({ status: false, message: 'Unauthorized' })
