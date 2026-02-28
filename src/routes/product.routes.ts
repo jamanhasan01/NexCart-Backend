@@ -7,7 +7,7 @@ import {
   updateProduct,
 } from '../controllers/product.controller'
 import { upload } from '../middlewares/upload.middleware'
-import { verifyToken } from '../middlewares/auth.middleware'
+
 
 const router = Router()
 /* =============================== product routes ================================ */
