@@ -129,8 +129,6 @@ export const updateCartItem = async (req: AuthRequest, res: Response, next: Next
     const updatedCart = await Cart.findOne({ user: userId }).populate('items.product')
 
     res.json({ items: updatedCart?.items })
-
-    res.json(cart)
   } catch (error) {
     next(error)
   }
@@ -152,7 +150,7 @@ export const removeCartItem = async (req: AuthRequest, res: Response, next: Next
 
     await cart.save()
 
-    res.json(cart)
+    res.json({ message: 'Removed form cart', data: cart })
   } catch (error) {
     next(error)
   }
