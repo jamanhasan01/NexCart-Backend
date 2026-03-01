@@ -80,9 +80,23 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
   try {
     const page = Number(req.query.page) || 1
     const limit = Number(req.query.limit) || 20
+    const search = (req.query.search as string) || ''
+    const sort = (req.query.sort as string) || ''
     const select = req.query.select ? (req.query.select as string).split(',').join(' ') : ''
+    const isCombo = (req.query.isCombo as string) || ''
+    const isFlashDeal = (req.query.isFlashDeal as string) || ''
+    const isTrending = (req.query.isTrending as string) || ''
 
-    const result = await getAllProductsService({ page, limit, select })
+    const result = await getAllProductsService({
+      page,
+      limit,
+      select,
+      search,
+      sort,
+      isCombo,
+      isFlashDeal,
+      isTrending,
+    })
     if (page > result.total_page) {
       res.status(400).json({ success: false, message: 'Page number exceeds total pages' })
     }

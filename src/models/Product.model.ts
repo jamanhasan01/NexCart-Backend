@@ -14,17 +14,20 @@ const productSchema = new mongoose.Schema<IProduct>(
     name: {
       type: String,
       required: true,
+      index: true,
       trim: true,
     },
 
     category: {
       type: String,
       required: true,
+      index: true,
     },
 
     brand: {
       type: String,
       default: null,
+      index: true,
     },
 
     price: {

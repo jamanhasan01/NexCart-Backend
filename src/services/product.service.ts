@@ -1,3 +1,4 @@
+import { error } from 'node:console'
 import Product from '../models/Product.model'
 import { IProduct } from '../types/product.type'
 import { IPagination } from '../types/query.type'
@@ -13,21 +14,70 @@ export const createProductService = async (data: IProduct) => {
 
 /* =============================== get all product  business logic ================================ */
 
-export const getAllProductsService = async ({ page, limit, select }: IPagination) => {
+export const getAllProductsService = async ({
+  page,
+  limit,
+  select,
+  search,
+  sort,
+  isCombo,
+  isFlashDeal,
+  isTrending,
+}: IPagination) => {
+  // search based on (name , brand ,basegory ,proId)
+  const filter: any = {}
+  if (search) {
+    const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+    filter.$or = [
+      { name: { $regex: safeSearch, $options: 'i' } },
+      { brand: { $regex: safeSearch, $options: 'i' } },
+      { category: { $regex: safeSearch, $options: 'i' } },
+      { productID: { $regex: safeSearch, $options: 'i' } },
+    ]
+  }
+  // sorting
+
+  const sortOptions: any = {}
+
+  if (sort) {
+    const nameOfSort = sort.startsWith('-') ? sort.slice(1) : sort
+    const sortOrder = sort.startsWith('-') ? -1 : 1
+    sortOptions[nameOfSort] = sortOrder
+  }
+
+  // filter by offerce product
+  if (isFlashDeal == 'true') {
+    filter.isFlashDeal = true
+  }
+  if (isCombo == 'true') {
+    filter.isCombo = true
+  }
+  if (isTrending == 'true') {
+    filter.isTrending = true
+  }
+
+  // pagination
   const skip = (page - 1) * limit
-  const total_product = await Product.countDocuments()
-  const products = await Product.find()
+  const total_product = await Product.countDocuments(filter)
+
+  // product find
+  const products = await Product.find(filter)
     .select(select || '')
 
     .skip(skip)
     .limit(limit)
+    .sort(sortOptions)
+  if (products.length === 0) {
+    throw new Error('No products found')
+  }
 
   return {
     products,
     total_product,
     page,
     limit,
-    total_page: Math.ceil(total_product / limit),
+    total_page: Math.max(1, Math.ceil(total_product / limit)),
   }
 }
 

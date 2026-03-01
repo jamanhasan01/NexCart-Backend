@@ -19,7 +19,7 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
     if (!product) {
       return res.status(404).json({ message: 'Product not found' })
     }
-    console.log('product ', product)
+   
 
     if (product.stock < quantity) {
       return res.status(400).json({ message: 'Not enough stock' })
