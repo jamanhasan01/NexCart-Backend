@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import { IProduct } from '../types/product.type'
+import { ref } from 'node:process'
 
 /* =============================== Complete Product Schema ================================ */
 const productSchema = new mongoose.Schema<IProduct>(
@@ -19,9 +20,9 @@ const productSchema = new mongoose.Schema<IProduct>(
     },
 
     category: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
       required: true,
-      index: true,
     },
 
     brand: {

@@ -7,7 +7,7 @@ export interface IProduct {
   name: string
   description: string
 
-  category: string
+  category: ICategory
   brand?: string | null
 
   price: number

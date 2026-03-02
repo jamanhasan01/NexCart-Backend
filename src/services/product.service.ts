@@ -2,6 +2,7 @@ import { error } from 'node:console'
 import Product from '../models/Product.model'
 import { IProduct } from '../types/product.type'
 import { IPagination } from '../types/query.type'
+import Category from '../models/Category.model'
 
 /* =============================== product create business logic ================================ */
 export const createProductService = async (data: IProduct) => {
@@ -28,15 +29,20 @@ export const getAllProductsService = async ({
   const filter: any = {}
   if (search) {
     const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const matchingCategories = await Category.find({
+      name: { $regex: safeSearch, $options: 'i' },
+    }).select('_id')
 
+    const categoryIds = matchingCategories.map((c) => c._id)
     filter.$or = [
       { name: { $regex: safeSearch, $options: 'i' } },
       { brand: { $regex: safeSearch, $options: 'i' } },
-      { category: { $regex: safeSearch, $options: 'i' } },
+
       { productID: { $regex: safeSearch, $options: 'i' } },
+      { category: { $in: categoryIds } },
     ]
   }
-  // sorting
+ 
 
   const sortOptions: any = {}
 
@@ -68,6 +74,7 @@ export const getAllProductsService = async ({
     .skip(skip)
     .limit(limit)
     .sort(sortOptions)
+    .populate('category')
   if (products.length === 0) {
     throw new Error('No products found')
   }
