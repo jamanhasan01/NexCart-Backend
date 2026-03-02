@@ -81,6 +81,8 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
     const page = Number(req.query.page) || 1
     const limit = Number(req.query.limit) || 20
     const search = (req.query.search as string) || ''
+    const categories = (req.query.categories as string) || ''
+    const productId = (req.query.productId as string) || ''
     const sort = (req.query.sort as string) || ''
     const select = req.query.select ? (req.query.select as string).split(',').join(' ') : ''
     const isCombo = (req.query.isCombo as string) || ''
@@ -92,6 +94,8 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
       limit,
       select,
       search,
+      categories,
+      productId,
       sort,
       isCombo,
       isFlashDeal,

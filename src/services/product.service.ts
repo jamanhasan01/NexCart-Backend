@@ -3,6 +3,7 @@ import Product from '../models/Product.model'
 import { IProduct } from '../types/product.type'
 import { IPagination } from '../types/query.type'
 import Category from '../models/Category.model'
+import mongoose from 'mongoose'
 
 /* =============================== product create business logic ================================ */
 export const createProductService = async (data: IProduct) => {
@@ -16,34 +17,60 @@ export const createProductService = async (data: IProduct) => {
 /* =============================== get all product  business logic ================================ */
 
 export const getAllProductsService = async ({
-  page,
-  limit,
+  page = 1,
+  limit = 10,
   select,
   search,
+  categories,
+  productId,
   sort,
   isCombo,
   isFlashDeal,
   isTrending,
 }: IPagination) => {
-  // search based on (name , brand ,basegory ,proId)
   const filter: any = {}
+
+  /* =============================== Search Filter ================================ */
   if (search) {
     const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
     const matchingCategories = await Category.find({
       name: { $regex: safeSearch, $options: 'i' },
     }).select('_id')
 
     const categoryIds = matchingCategories.map((c) => c._id)
+
     filter.$or = [
       { name: { $regex: safeSearch, $options: 'i' } },
       { brand: { $regex: safeSearch, $options: 'i' } },
-
-      { productID: { $regex: safeSearch, $options: 'i' } },
-      { category: { $in: categoryIds } },
+      ...(categoryIds.length ? [{ category: { $in: categoryIds } }] : []),
     ]
   }
- 
 
+  /* =============================== Category Filter ================================ */
+  if (categories) {
+    const matchingCategories = await Category.find({
+      name: { $regex: categories, $options: 'i' },
+    }).select('_id')
+
+    const categoryIds = matchingCategories.map((c) => c._id)
+
+    if (categoryIds.length) {
+      filter.category = { $in: categoryIds }
+    }
+  }
+
+  /* =============================== ProductID Filter ================================ */
+  if (productId) {
+    filter.productID = productId
+  }
+
+  /* =============================== Flags ================================ */
+  if (isFlashDeal === 'true') filter.isFlashDeal = true
+  if (isCombo === 'true') filter.isCombo = true
+  if (isTrending === 'true') filter.isTrending = true
+
+  /* =============================== Sorting ================================ */
   const sortOptions: any = {}
 
   if (sort) {
@@ -52,32 +79,19 @@ export const getAllProductsService = async ({
     sortOptions[nameOfSort] = sortOrder
   }
 
-  // filter by offerce product
-  if (isFlashDeal == 'true') {
-    filter.isFlashDeal = true
-  }
-  if (isCombo == 'true') {
-    filter.isCombo = true
-  }
-  if (isTrending == 'true') {
-    filter.isTrending = true
-  }
-
-  // pagination
+  /* =============================== Pagination ================================ */
   const skip = (page - 1) * limit
-  const total_product = await Product.countDocuments(filter)
 
-  // product find
-  const products = await Product.find(filter)
-    .select(select || '')
+  const [products, total_product] = await Promise.all([
+    Product.find(filter)
+      .select(select || '')
+      .skip(skip)
+      .limit(limit)
+      .sort(sortOptions)
+      .populate('category'),
 
-    .skip(skip)
-    .limit(limit)
-    .sort(sortOptions)
-    .populate('category')
-  if (products.length === 0) {
-    throw new Error('No products found')
-  }
+    Product.countDocuments(filter),
+  ])
 
   return {
     products,
@@ -87,7 +101,6 @@ export const getAllProductsService = async ({
     total_page: Math.max(1, Math.ceil(total_product / limit)),
   }
 }
-
 /* =============================== get single product  business logic ================================ */
 export const getSingleProductService = async (id: string) => {
   const product = await Product.findById(id)

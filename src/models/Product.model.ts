@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { IProduct } from '../types/product.type'
-import { ref } from 'node:process'
+
 
 /* =============================== Complete Product Schema ================================ */
 const productSchema = new mongoose.Schema<IProduct>(
@@ -100,6 +100,7 @@ const productSchema = new mongoose.Schema<IProduct>(
     timestamps: true,
   },
 )
+
 
 /* =============================== Model Export ================================ */
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema)
