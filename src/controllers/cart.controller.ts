@@ -19,7 +19,6 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
     if (!product) {
       return res.status(404).json({ message: 'Product not found' })
     }
-   
 
     if (product.stock < quantity) {
       return res.status(400).json({ message: 'Not enough stock' })
@@ -68,6 +67,8 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
     next(error)
   }
 }
+/* =============================== Get Cart ================================ */
+
 export const getCart = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId
@@ -78,12 +79,16 @@ export const getCart = async (req: AuthRequest, res: Response, next: NextFunctio
       return res.json({ items: [] })
     }
 
+    // 🔥 Remove broken products automatically
+    cart.items = cart.items.filter((item: any) => item.product !== null)
+
+    await cart.save()
+
     res.json(cart)
   } catch (error) {
     next(error)
   }
 }
-
 /* =============================== updateCartItem ================================ */
 
 export const updateCartItem = async (req: AuthRequest, res: Response, next: NextFunction) => {
