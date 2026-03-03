@@ -15,7 +15,6 @@ export const createProductService = async (data: IProduct) => {
 }
 
 /* =============================== get all product  business logic ================================ */
-
 export const getAllProductsService = async ({
   page = 1,
   limit = 10,
@@ -24,6 +23,8 @@ export const getAllProductsService = async ({
   categories,
   productId,
   sort,
+  minPrice,
+  maxPrice,
   isCombo,
   isFlashDeal,
   isTrending,
@@ -34,35 +35,46 @@ export const getAllProductsService = async ({
   if (search) {
     const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-    const matchingCategories = await Category.find({
-      name: { $regex: safeSearch, $options: 'i' },
-    }).select('_id')
-
-    const categoryIds = matchingCategories.map((c) => c._id)
-
     filter.$or = [
       { name: { $regex: safeSearch, $options: 'i' } },
       { brand: { $regex: safeSearch, $options: 'i' } },
-      ...(categoryIds.length ? [{ category: { $in: categoryIds } }] : []),
     ]
   }
 
   /* =============================== Category Filter ================================ */
   if (categories) {
-    const matchingCategories = await Category.find({
-      name: { $regex: categories, $options: 'i' },
+    const category = Array.isArray(categories) ? categories[0] : categories
+
+    const categoryId = await Category.findOne({
+      slug: category,
+      isActive: true, // ✅ only active category allowed
     }).select('_id')
 
-    const categoryIds = matchingCategories.map((c) => c._id)
-
-    if (categoryIds.length) {
-      filter.category = { $in: categoryIds }
+    if (categoryId) {
+      filter.category = categoryId._id
+    } else {
+      // ❗ If category inactive or not found → return empty
+      return {
+        products: [],
+        total_product: 0,
+        page,
+        limit,
+        total_page: 0,
+      }
     }
   }
 
   /* =============================== ProductID Filter ================================ */
   if (productId) {
     filter.productID = productId
+  }
+
+  /* =============================== Price Filter ================================ */
+  if (minPrice || maxPrice) {
+    filter.price = {
+      ...(minPrice && { $gte: Number(minPrice) }),
+      ...(maxPrice && { $lte: Number(maxPrice) }),
+    }
   }
 
   /* =============================== Flags ================================ */
@@ -82,16 +94,21 @@ export const getAllProductsService = async ({
   /* =============================== Pagination ================================ */
   const skip = (page - 1) * limit
 
-  const [products, total_product] = await Promise.all([
-    Product.find(filter)
-      .select(select || '')
-      .skip(skip)
-      .limit(limit)
-      .sort(sortOptions)
-      .populate('category'),
+  /* =============================== Fetch Products ================================ */
+  const productsRaw = await Product.find(filter)
+    .select(select || '')
+    .skip(skip)
+    .limit(limit)
+    .sort(sortOptions)
+    .populate({
+      path: 'category',
+      match: { isActive: true }, // ✅ global safety
+    })
 
-    Product.countDocuments(filter),
-  ])
+  // 🔥 Remove products with inactive category
+  const products = productsRaw.filter((p) => p.category !== null)
+
+  const total_product = products.length
 
   return {
     products,

@@ -84,6 +84,8 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
     const categories = (req.query.categories as string) || ''
     const productId = (req.query.productId as string) || ''
     const sort = (req.query.sort as string) || ''
+    const minPrice = (req.query.minPrice as string) || ''
+    const maxPrice = (req.query.maxPrice as string) || ''
     const select = req.query.select ? (req.query.select as string).split(',').join(' ') : ''
     const isCombo = (req.query.isCombo as string) || ''
     const isFlashDeal = (req.query.isFlashDeal as string) || ''
@@ -97,6 +99,8 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
       categories,
       productId,
       sort,
+      minPrice,
+      maxPrice,
       isCombo,
       isFlashDeal,
       isTrending,

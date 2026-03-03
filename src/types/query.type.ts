@@ -5,6 +5,8 @@ export interface IPagination {
   search?: string
   categories?: string
   productId?: string
+  minPrice?: string
+  maxPrice: string
   sort?: string
   isCombo?: string
   isFlashDeal?: string
