@@ -1,9 +1,10 @@
 import { error } from 'node:console'
 import Product from '../models/Product.model'
 import { IProduct } from '../types/product.type'
-import { IPagination } from '../types/query.type'
+
 import Category from '../models/Category.model'
 import mongoose from 'mongoose'
+import { IProductQuery } from '../types/query.type'
 
 /* =============================== product create business logic ================================ */
 export const createProductService = async (data: IProduct) => {
@@ -28,7 +29,7 @@ export const getAllProductsService = async ({
   isCombo,
   isFlashDeal,
   isTrending,
-}: IPagination) => {
+}: IProductQuery) => {
   const filter: any = {}
 
   /* =============================== Search Filter ================================ */

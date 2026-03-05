@@ -1,4 +1,4 @@
-export interface IPagination {
+export interface IProductQuery {
   page: number
   limit: number
   select?: string
@@ -11,4 +11,11 @@ export interface IPagination {
   isCombo?: string
   isFlashDeal?: string
   isTrending?: string
+}
+
+export interface IOrderQuery {
+  page: number
+  limit: number
+  select?: string
+  userId?: string
 }

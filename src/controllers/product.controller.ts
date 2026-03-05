@@ -25,6 +25,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       tags,
       status,
     } = req.body
+console.log(req.body);
 
     if (!name || !description || !price || !stock || !category) {
       return res.status(400).json({

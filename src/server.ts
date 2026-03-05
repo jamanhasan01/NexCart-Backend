@@ -4,6 +4,7 @@ import authRoutes from './routes/auth.routes'
 import userRoute from './routes/user.routes'
 import productRoute from './routes/product.routes'
 import categoryRoute from './routes/category.routes'
+import orderRoute from './routes/order.route'
 import cartRoute from './routes/cart.route'
 import cookieParser from 'cookie-parser'
 
@@ -56,6 +57,7 @@ app.use('/api', userRoute)
 app.use('/api', productRoute)
 app.use('/api', categoryRoute)
 app.use('/api', cartRoute)
+app.use('/api', orderRoute)
 
 /* =============================== Global error middleware ================================ */
 app.use(errorMiddleware)
