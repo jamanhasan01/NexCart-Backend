@@ -8,7 +8,7 @@ import Cart from '../models/Cart.model'
 export const addToCart = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId
-    console.log('Decoded user:', userId)
+
     const { productId, quantity } = req.body
 
     if (!userId) {

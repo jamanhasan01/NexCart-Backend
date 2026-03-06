@@ -24,7 +24,7 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
     const userId = req?.user?.userId
     const orderId = `ORD-${nanoid(8).toUpperCase()}`
     const order = await createOrderService(userId, { ...payload, orderId })
-    console.log(order)
+
 
     res.status(201).json({
       success: true,
@@ -78,7 +78,7 @@ export const deleteOrder = async (req: AuthRequest, res: Response, next: NextFun
     return res.status(400).json({ success: false, message: 'Order can not be cancelled' })
   }
   for (const item of order.items) {
-    console.log(item)
+
 
     const product = await Product.findByIdAndUpdate(
       item.product,

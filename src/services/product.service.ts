@@ -1,4 +1,4 @@
-import { error } from 'node:console'
+
 import Product from '../models/Product.model'
 import { IProduct } from '../types/product.type'
 

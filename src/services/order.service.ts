@@ -14,7 +14,7 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
 
   for (const item of payload.items) {
     const product = await Product.findById(item.product)
-    console.log('products ', product)
+
 
     if (!product) {
       throw new Error('Product not found')
@@ -40,7 +40,7 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
     await product.save()
   }
 
-  console.log(items)
+  
 
   const shipping = 60
   const total = subtotal + shipping
