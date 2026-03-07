@@ -86,10 +86,11 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
   }
 }
 /* =============================== logout ================================ */
-
 export const logoutUser = (req: Request, res: Response) => {
   res.clearCookie('accessToken', {
     httpOnly: true,
+    secure: true,
+    sameSite: 'none',
   })
 
   return res.status(200).json({
