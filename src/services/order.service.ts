@@ -15,7 +15,6 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
   for (const item of payload.items) {
     const product = await Product.findById(item.product)
 
-
     if (!product) {
       throw new Error('Product not found')
     }
@@ -40,8 +39,6 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
     await product.save()
   }
 
-  
-
   const shipping = 60
   const total = subtotal + shipping
 
@@ -62,17 +59,33 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
   return order
 }
 
-export const getAllOrderService = async ({ page, limit, select }: IOrderQuery) => {
-  const total_order = await Order.countDocuments()
+export const getAllOrderService = async ({ page, limit, select, search, status }: IOrderQuery) => {
+  const query: any = {}
+
+  /* =============================== search ================================ */
+
+  if (search) {
+    query.orderId = { $regex: search, $options: 'i' }
+  }
+
+  /* =============================== status filter ================================ */
+
+  if (status && status !== 'all') {
+    query.status = status
+  }
+
+  /* =============================== pegination  ================================ */
+  const total_order = await Order.countDocuments(query)
   const total_page = Math.ceil(total_order / limit)
   const skip = (page - 1) * limit
-
-  const order = await Order.find()
+  /* =============================== payload of object  ================================ */
+  const order = await Order.find(query)
     .skip(skip)
     .limit(limit)
     .select(select || '')
     .populate('user', 'name  email  phone')
     .populate('items.product', 'productID name price thumbnail')
+    .sort({ createdAt: -1 })
 
   return {
     order,
@@ -83,17 +96,43 @@ export const getAllOrderService = async ({ page, limit, select }: IOrderQuery) =
     },
   }
 }
-export const getUserOrdersService = async ({ page, limit, select, userId }: IOrderQuery) => {
-  const total_order = await Order.countDocuments({ user: userId })
+export const getUserOrdersService = async ({
+  page,
+  limit,
+  select,
+  userId,
+  search,
+  status,
+}: IOrderQuery) => {
+  /* =============================== base query ================================ */
+
+  const query: any = { user: userId }
+
+  /* =============================== search ================================ */
+
+  if (search) {
+    query.orderId = { $regex: search, $options: 'i' }
+  }
+
+  /* =============================== status filter ================================ */
+
+  if (status && status !== 'all') {
+    query.status = status
+  }
+
+  /* =============================== pegination  ================================ */
+  const total_order = await Order.countDocuments(query)
   const total_page = Math.ceil(total_order / limit)
   const skip = (page - 1) * limit
+  /* =============================== payload of object  ================================ */
 
-  const order = await Order.find({ user: userId })
+  const order = await Order.find(query)
     .skip(skip)
     .limit(limit)
     .select(select || '')
     .populate('user', 'name  email  phone')
     .populate('items.product', 'productID name price thumbnail')
+    .sort({ createdAt: -1 })
 
   return {
     order,

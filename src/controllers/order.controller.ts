@@ -25,7 +25,6 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
     const orderId = `ORD-${nanoid(8).toUpperCase()}`
     const order = await createOrderService(userId, { ...payload, orderId })
 
-
     res.status(201).json({
       success: true,
       message: 'Order created successfully',
@@ -39,10 +38,12 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
 export const getAllOrders = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const page = Number(req.query.page) || 1
   const limit = Number(req.query.limit) || 10
+    const search = req.query.search as string
+  const status = req.query.status as string
   const select = req.query.select as string
 
   try {
-    const order = await getAllOrderService({ page, limit, select })
+    const order = await getAllOrderService({ page, limit, select ,search, status})
     res.status(200).json({ success: true, data: order })
   } catch (error) {
     next(error)
@@ -51,11 +52,13 @@ export const getAllOrders = async (req: AuthRequest, res: Response, next: NextFu
 export const getUserOrders = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const page = Number(req.query.page) || 1
   const limit = Number(req.query.limit) || 10
+  const search = req.query.search as string
+  const status = req.query.status as string
   const select = req.query.select as string
   const userId = req.user?.userId
 
   try {
-    const order = await getUserOrdersService({ page, limit, select, userId })
+    const order = await getUserOrdersService({ page, limit, select, userId, status, search })
     res.status(200).json({ success: true, data: order })
   } catch (error) {
     next(error)
@@ -78,8 +81,6 @@ export const deleteOrder = async (req: AuthRequest, res: Response, next: NextFun
     return res.status(400).json({ success: false, message: 'Order can not be cancelled' })
   }
   for (const item of order.items) {
-
-
     const product = await Product.findByIdAndUpdate(
       item.product,
       {

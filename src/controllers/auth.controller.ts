@@ -92,6 +92,7 @@ export const logoutUser = (req: Request, res: Response) => {
     secure: true,
     sameSite: 'none',
   })
+  
 
   return res.status(200).json({
     success: true,

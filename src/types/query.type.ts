@@ -17,5 +17,7 @@ export interface IOrderQuery {
   page: number
   limit: number
   select?: string
+  status?:string,
+  search?:string
   userId?: string
 }
