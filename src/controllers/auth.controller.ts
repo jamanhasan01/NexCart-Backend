@@ -32,9 +32,12 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
 }
 
 /* =============================== Login controller ================================ */
+
 export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body
+
+    /* =============================== validation ================================ */
 
     if (!email || !password) {
       return res.status(401).json({
@@ -43,7 +46,31 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
       })
     }
 
+    /* =============================== find user ================================ */
+
+    const user = await User.findOne({ email })
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password',
+      })
+    }
+
+    /* =============================== blocked check ================================ */
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been blocked. Please contact support.',
+      })
+    }
+
+    /* =============================== login service ================================ */
+
     const result = await loginUserService(email, password)
+
+    /* =============================== generate token ================================ */
 
     const token = generateToken({
       userId: result.userExists._id.toString(),
@@ -51,19 +78,20 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     })
 
     /* =============================== set cookie ================================ */
-    // res.cookie('accessToken', token, {
-    //   httpOnly: true,
-    //   secure: false, // REQUIRED for SameSite=None
-    //   sameSite: 'lax',
-    //   maxAge: 7 * 24 * 60 * 60 * 1000,
-    // })
+
     res.cookie('accessToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
-    res.status(200).json({ success: true, message: 'Login successfully' })
+
+    /* =============================== success response ================================ */
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successfully',
+    })
   } catch (error) {
     next(error)
   }
@@ -92,7 +120,6 @@ export const logoutUser = (req: Request, res: Response) => {
     secure: true,
     sameSite: 'none',
   })
-  
 
   return res.status(200).json({
     success: true,
