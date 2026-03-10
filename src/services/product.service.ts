@@ -1,4 +1,3 @@
-
 import Product from '../models/Product.model'
 import { IProduct } from '../types/product.type'
 
@@ -15,11 +14,10 @@ export const createProductService = async (data: IProduct) => {
   })
 }
 
-/* =============================== get all product  business logic ================================ */
+/* =============================== get products + dashboard stats ================================ */
 export const getAllProductsService = async ({
   page = 1,
   limit = 10,
-  select,
   search,
   categories,
   productId,
@@ -29,43 +27,58 @@ export const getAllProductsService = async ({
   isCombo,
   isFlashDeal,
   isTrending,
+  status,
 }: IProductQuery) => {
   const filter: any = {}
 
   /* =============================== Search Filter ================================ */
   if (search) {
     const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
+    
+    
     filter.$or = [
       { name: { $regex: safeSearch, $options: 'i' } },
       { brand: { $regex: safeSearch, $options: 'i' } },
+      { productID: { $regex: safeSearch, $options: 'i' } },
     ]
+  }
+
+  /* =============================== Status Filter ================================ */
+  if (status && status !== 'all') {
+    filter.status = status
   }
 
   /* =============================== Category Filter ================================ */
   if (categories) {
-    const category = Array.isArray(categories) ? categories[0] : categories
+    const categorySlug = Array.isArray(categories) ? categories[0] : categories
 
-    const categoryId = await Category.findOne({
-      slug: category,
-      isActive: true, // ✅ only active category allowed
+    const category = await Category.findOne({
+      slug: categorySlug,
+      isActive: true,
     }).select('_id')
 
-    if (categoryId) {
-      filter.category = categoryId._id
-    } else {
-      // ❗ If category inactive or not found → return empty
+    if (!category) {
       return {
         products: [],
-        total_product: 0,
-        page,
-        limit,
-        total_page: 0,
+        stats: {
+          totalStock: 0,
+          totalInventoryValue: 0,
+          activeProducts: 0,
+          lowStock: 0,
+        },
+        pagination: {
+          page,
+          limit,
+          total_page: 0,
+          total_product: 0,
+        },
       }
     }
+
+    filter.category = category._id
   }
 
-  /* =============================== ProductID Filter ================================ */
+  /* =============================== Product ID Filter ================================ */
   if (productId) {
     filter.productID = productId
   }
@@ -84,39 +97,101 @@ export const getAllProductsService = async ({
   if (isTrending === 'true') filter.isTrending = true
 
   /* =============================== Sorting ================================ */
-  const sortOptions: any = {}
+  let sortStage: any = { createdAt: -1 }
 
   if (sort) {
-    const nameOfSort = sort.startsWith('-') ? sort.slice(1) : sort
-    const sortOrder = sort.startsWith('-') ? -1 : 1
-    sortOptions[nameOfSort] = sortOrder
+    const field = sort.startsWith('-') ? sort.slice(1) : sort
+    const order = sort.startsWith('-') ? -1 : 1
+    sortStage = { [field]: order }
   }
 
   /* =============================== Pagination ================================ */
   const skip = (page - 1) * limit
 
-  /* =============================== Fetch Products ================================ */
-  const productsRaw = await Product.find(filter)
-    .select(select || '')
-    .skip(skip)
-    .limit(limit)
-    .sort(sortOptions)
-    .populate({
-      path: 'category',
-      match: { isActive: true }, // ✅ global safety
-    })
+  /* =============================== Aggregation ================================ */
+  const result = await Product.aggregate([
+    { $match: filter },
 
-  // 🔥 Remove products with inactive category
-  const products = productsRaw.filter((p) => p.category !== null)
+    {
+      $facet: {
+        /* =============================== Products ================================ */
+        products: [
+          { $sort: sortStage },
+          { $skip: skip },
+          { $limit: limit },
 
-  const total_product = products.length
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'category',
+              foreignField: '_id',
+              as: 'category',
+            },
+          },
+
+          {
+            $unwind: {
+              path: '$category',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+
+        /* =============================== Total Products ================================ */
+        totalCount: [{ $count: 'count' }],
+
+        /* =============================== Inventory Stats ================================ */
+        inventoryStats: [
+          {
+            $group: {
+              _id: null,
+
+              totalStock: {
+                $sum: { $toInt: '$stock' },
+              },
+
+              totalInventoryValue: {
+                $sum: {
+                  $multiply: [{ $toDouble: '$price' }, { $toInt: '$stock' }],
+                },
+              },
+            },
+          },
+        ],
+
+        /* =============================== Active Products ================================ */
+        activeProducts: [{ $match: { status: 'active' } }, { $count: 'count' }],
+
+        /* =============================== Low Stock ================================ */
+        lowStock: [{ $match: { stock: { $lt: 10 } } }, { $count: 'count' }],
+      },
+    },
+  ])
+
+  const data = result[0]
+
+  const total_product = data?.totalCount?.[0]?.count || 0
+
+  const inventoryStats = data?.inventoryStats?.[0] || {
+    totalStock: 0,
+    totalInventoryValue: 0,
+  }
 
   return {
-    products,
-    total_product,
-    page,
-    limit,
-    total_page: Math.max(1, Math.ceil(total_product / limit)),
+    products: data.products || [],
+
+    stats: {
+      totalStock: inventoryStats.totalStock,
+      totalInventoryValue: inventoryStats.totalInventoryValue,
+      activeProducts: data?.activeProducts?.[0]?.count || 0,
+      lowStock: data?.lowStock?.[0]?.count || 0,
+    },
+    pagination: {
+      page,
+      limit,
+      total_page: Math.max(1, Math.ceil(total_product / limit)),
+      total_product,
+    },
   }
 }
 /* =============================== get single product  business logic ================================ */

@@ -26,7 +26,6 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       status,
     } = req.body
 
-
     if (!name || !description || !price || !stock || !category) {
       return res.status(400).json({
         success: false,
@@ -45,7 +44,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       parsedTags = [tags]
     }
 
-    const product = await createProductService({
+    const query = {
       productID,
       name,
       description,
@@ -61,7 +60,8 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       images: [],
       thumbnail: '',
       status,
-    })
+    }
+    const product = await createProductService(query)
 
     if (req.files && Array.isArray(req.files)) {
       const files = req.files as Express.Multer.File[]
@@ -79,18 +79,22 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 /* =============================== get all products controller ================================ */
 export const getAllProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const page = Number(req.query.page) || 1
-    const limit = Number(req.query.limit) || 20
-    const search = (req.query.search as string) || ''
-    const categories = (req.query.categories as string) || ''
-    const productId = (req.query.productId as string) || ''
-    const sort = (req.query.sort as string) || ''
-    const minPrice = (req.query.minPrice as string) || ''
-    const maxPrice = (req.query.maxPrice as string) || ''
-    const select = req.query.select ? (req.query.select as string).split(',').join(' ') : ''
-    const isCombo = (req.query.isCombo as string) || ''
-    const isFlashDeal = (req.query.isFlashDeal as string) || ''
-    const isTrending = (req.query.isTrending as string) || ''
+    const query = req.query
+
+    const page = Number(query.page) || 1
+    const limit = Number(query.limit) || 20
+    const search = (query.search as string) || ''
+    const categories = (query.categories as string) || ''
+    const productId = (query.productId as string) || ''
+    const sort = (query.sort as string) || ''
+    const minPrice = (query.minPrice as string) || ''
+    const maxPrice = (query.maxPrice as string) || ''
+    const status = (query.status as string) || ''
+    const isCombo = (query.isCombo as string) || ''
+    const isFlashDeal = (query.isFlashDeal as string) || ''
+    const isTrending = (query.isTrending as string) || ''
+
+    const select = query.select ? (query.select as string).split(',').join(' ') : ''
 
     const result = await getAllProductsService({
       page,
@@ -102,19 +106,27 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
       sort,
       minPrice,
       maxPrice,
+      status,
       isCombo,
       isFlashDeal,
       isTrending,
     })
-    if (page > result.total_page) {
-      res.status(400).json({ success: false, message: 'Page number exceeds total pages' })
+
+    if (page > result.pagination.total_page) {
+      return res.status(400).json({
+        success: false,
+        message: 'Page number exceeds total pages',
+      })
     }
-    return res.status(200).json({ success: true, data: result })
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    })
   } catch (error) {
     next(error)
   }
 }
-
 /* =============================== get single product  controller ================================ */
 
 export const getSingleProduct = async (req: Request, res: Response, next: NextFunction) => {
@@ -170,6 +182,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       isFlashDeal,
       isCombo,
       tags,
+      status,
     } = req.body
 
     /* =============================== Parse Tags ================================ */
@@ -198,6 +211,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       ...(isFlashDeal !== undefined && { isFlashDeal: parseBoolean(isFlashDeal) }),
       ...(isCombo !== undefined && { isCombo: parseBoolean(isCombo) }),
       ...(parsedTags && { tags: parsedTags }),
+      ...(status && { status }),
     }
 
     /* =============================== Update Product ================================ */

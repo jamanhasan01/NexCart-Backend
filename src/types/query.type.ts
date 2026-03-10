@@ -8,6 +8,7 @@ export interface IProductQuery {
   minPrice?: string
   maxPrice: string
   sort?: string
+  status?: string
   isCombo?: string
   isFlashDeal?: string
   isTrending?: string
@@ -17,7 +18,7 @@ export interface IOrderQuery {
   page: number
   limit: number
   select?: string
-  status?:string,
-  search?:string
+  status?: string
+  search?: string
   userId?: string
 }

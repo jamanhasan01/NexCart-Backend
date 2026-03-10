@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { getAllUserService, getSingleUserService } from '../services/user.service'
 import User from '../models/User.model'
+import { AuthRequest } from '../types/auth.type'
+import { singleImageUploadService } from '../services/image.upload.service'
 
 /* =============================== Get All Users Controller ================================ */
 export const getAllUser = async (req: Request, res: Response) => {
@@ -121,7 +123,40 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
   }
 }
 
+/* =============================== Update Profile Controller ================================ */
 
+export const updateProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.userId
+    const image = req.file
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      })
+    }
+
+    const { name, phone } = req.body
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name, phone },
+      { new: true, runValidators: true },
+    )
+
+    if (image) {
+      await singleImageUploadService(image, userId)
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: updatedUser,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
 /* =============================== Block / Unblock User Controller ================================ */
 
 export const toggleBlockUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -131,7 +166,7 @@ export const toggleBlockUser = async (req: Request, res: Response, next: NextFun
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: "User ID is required",
+        message: 'User ID is required',
       })
     }
 
@@ -140,16 +175,16 @@ export const toggleBlockUser = async (req: Request, res: Response, next: NextFun
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       })
     }
 
     /* =============================== prevent admin block ================================ */
 
-    if (user.role === "admin") {
+    if (user.role === 'admin') {
       return res.status(403).json({
         success: false,
-        message: "Admin users cannot be blocked",
+        message: 'Admin users cannot be blocked',
       })
     }
 
@@ -160,9 +195,56 @@ export const toggleBlockUser = async (req: Request, res: Response, next: NextFun
 
     return res.status(200).json({
       success: true,
-      message: user.isBlocked
-        ? "User blocked successfully"
-        : "User unblocked successfully",
+      message: user.isBlocked ? 'User blocked successfully' : 'User unblocked successfully',
+      data: user,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+/* =============================== Toggle Admin Role Controller ================================ */
+
+export const toggleAdminRole = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required',
+      })
+    }
+
+    /* =============================== find user ================================ */
+
+    const user = await User.findById(id)
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      })
+    }
+
+    /* =============================== prevent super_admin change ================================ */
+
+    if (user.role === 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Super admin role cannot be changed',
+      })
+    }
+
+    /* =============================== toggle admin ================================ */
+
+    user.role = user.role === 'admin' ? 'customer' : 'admin'
+
+    await user.save()
+
+    return res.status(200).json({
+      success: true,
+      message: user.role === 'admin' ? 'User promoted to admin' : 'Admin role removed',
       data: user,
     })
   } catch (error) {

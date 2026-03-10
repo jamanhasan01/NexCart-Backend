@@ -15,6 +15,7 @@ export interface IProduct {
 
   stock: number
 
+  
   images: string[]
   thumbnail: string
   isTrending: boolean
@@ -36,3 +37,5 @@ export interface ICategory {
   createdAt?: Date
   updatedAt?: Date
 }
+
+

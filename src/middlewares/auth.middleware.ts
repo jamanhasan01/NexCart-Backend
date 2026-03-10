@@ -43,3 +43,25 @@ export const verifyAdmin = (req: AuthRequest, res: Response, next: NextFunction)
   }
   next()
 }
+
+/* =============================== Verify admin Token ================================ */
+export const authorizeRoles =
+  (...roles: string[]) =>
+  (req: AuthRequest, res: Response, next: NextFunction) => {
+    const user = req.user
+    console.log(roles)
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      })
+    }
+    if (!roles.includes(user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'super admin access only',
+      })
+    }
+    next()
+  }
