@@ -4,15 +4,30 @@ import { OrderStatus } from '../types/order.type'
 /* =============================== order item schema ================================ */
 
 const orderItemSchema = new Schema(
-  {
+ {
     product: {
       type: Schema.Types.ObjectId,
       ref: 'Product',
       required: true,
     },
+
+    name: {
+      type: String,
+      required: true,
+    },
+
+    price: {
+      type: Number,
+      required: true,
+    },
+
     quantity: {
       type: Number,
       required: true,
+    },
+
+    image: {
+      type: String,
     },
   },
   { _id: false },

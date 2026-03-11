@@ -30,7 +30,7 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
       name: product.name,
       price: product.price,
       quantity: item.quantity,
-      image: product.image,
+      image: product.thumbnail,
     })
 
     /* ================= reduce stock ================= */
@@ -52,6 +52,8 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
     total,
   })
 
+
+
   /* ================= clear cart ================= */
 
   await removeOrderedItemsFromCart(userId, items)
@@ -59,40 +61,190 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
   return order
 }
 
-export const getAllOrderService = async ({ page, limit, select, search, status }: IOrderQuery) => {
-  const query: any = {}
+/* =============================== get orders + dashboard stats ================================ */
+/* =============================== get orders + stats ================================ */
+export const getAllOrderService = async ({
+  page = 1,
+  limit = 10,
+  select,
+  search,
+  status,
+}: IOrderQuery) => {
+  const filter: any = {}
 
   /* =============================== search ================================ */
-
   if (search) {
-    query.orderId = { $regex: search, $options: 'i' }
+    const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    filter.orderId = { $regex: safeSearch, $options: 'i' }
   }
 
   /* =============================== status filter ================================ */
-
   if (status && status !== 'all') {
-    query.status = status
+    filter.status = status
   }
 
-  /* =============================== pegination  ================================ */
-  const total_order = await Order.countDocuments(query)
-  const total_page = Math.ceil(total_order / limit)
+  /* =============================== pagination ================================ */
   const skip = (page - 1) * limit
-  /* =============================== payload of object  ================================ */
-  const order = await Order.find(query)
-    .skip(skip)
-    .limit(limit)
-    .select(select || '')
-    .populate('user', 'name  email  phone')
-    .populate('items.product', 'productID name price thumbnail')
-    .sort({ createdAt: -1 })
+
+  /* =============================== date helpers ================================ */
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+
+  /* =============================== aggregation ================================ */
+  const result = await Order.aggregate([
+    { $match: filter },
+
+    {
+      $facet: {
+        /* =============================== order list ================================ */
+        orders: [
+          { $sort: { createdAt: -1 } },
+          { $skip: skip },
+          { $limit: limit },
+
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'user',
+              foreignField: '_id',
+              as: 'user',
+            },
+          },
+          { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
+          {
+            $lookup: {
+              from: 'products',
+              localField: 'items.product',
+              foreignField: '_id',
+              as: 'products',
+            },
+          },
+        ],
+
+        /* =============================== total orders ================================ */
+        totalOrders: [{ $count: 'count' }],
+
+        /* =============================== status stats ================================ */
+        statusStats: [
+          {
+            $group: {
+              _id: '$status',
+              count: { $sum: 1 },
+            },
+          },
+        ],
+
+        /* =============================== total items sold ================================ */
+        totalItemsSold: [
+          { $match: { status: 'delivered' } },
+          { $unwind: '$items' },
+          {
+            $group: {
+              _id: null,
+              items: { $sum: '$items.quantity' },
+            },
+          },
+        ],
+
+        /* =============================== total revenue ================================ */
+        totalRevenue: [
+          { $match: { status: 'delivered' } },
+          { $unwind: '$items' },
+          {
+            $group: {
+              _id: null,
+              revenue: {
+                $sum: {
+                  $multiply: ['$items.quantity', '$items.price'],
+                },
+              },
+            },
+          },
+        ],
+
+        /* =============================== today sales ================================ */
+        todaySales: [
+          {
+            $match: {
+              status: 'delivered',
+              createdAt: { $gte: today },
+            },
+          },
+          { $unwind: '$items' },
+          {
+            $group: {
+              _id: null,
+              revenue: {
+                $sum: {
+                  $multiply: ['$items.quantity', '$items.price'],
+                },
+              },
+            },
+          },
+        ],
+
+        /* =============================== monthly sales ================================ */
+        monthlySales: [
+          {
+            $match: {
+              status: 'delivered',
+              createdAt: { $gte: startOfMonth },
+            },
+          },
+          { $unwind: '$items' },
+          {
+            $group: {
+              _id: null,
+              revenue: {
+                $sum: {
+                  $multiply: ['$items.quantity', '$items.price'],
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+  ])
+
+  const data = result[0]
+
+  const total_orders = data?.totalOrders?.[0]?.count || 0
+
+  /* =============================== convert status stats ================================ */
+  const statusStats: any = {}
+
+  data.statusStats.forEach((s: any) => {
+    statusStats[s._id] = s.count
+  })
 
   return {
-    order,
+    orders: data.orders || [],
+
+    stats: {
+      pending: statusStats.pending || 0,
+      confirmed: statusStats.confirmed || 0,
+      processing: statusStats.processing || 0,
+      shipped: statusStats.shipped || 0,
+      delivered: statusStats.delivered || 0,
+      cancelled: statusStats.cancelled || 0,
+
+      totalRevenue: data?.totalRevenue?.[0]?.revenue || 0,
+      totalItemsSold: data?.totalItemsSold?.[0]?.items || 0,
+      todaySales: data?.todaySales?.[0]?.revenue || 0,
+      monthlySales: data?.monthlySales?.[0]?.revenue || 0,
+    },
+
     pagination: {
-      total_page,
+      page,
       limit,
-      total_order,
+      total_page: Math.max(1, Math.ceil(total_orders / limit)),
+      total_orders,
     },
   }
 }

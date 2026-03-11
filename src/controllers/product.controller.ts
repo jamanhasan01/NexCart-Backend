@@ -24,6 +24,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       isCombo,
       tags,
       status,
+      isDeleted,
     } = req.body
 
     if (!name || !description || !price || !stock || !category) {
@@ -60,6 +61,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       images: [],
       thumbnail: '',
       status,
+      isDeleted,
     }
     const product = await createProductService(query)
 
@@ -95,7 +97,9 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
     const isTrending = (query.isTrending as string) || ''
 
     const select = query.select ? (query.select as string).split(',').join(' ') : ''
+    /* =============================== Soft Delete ================================ */
 
+    const isDeleted = query.isDeleted !== undefined ? query.isDeleted === 'true' : false
     const result = await getAllProductsService({
       page,
       limit,
@@ -110,6 +114,7 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
       isCombo,
       isFlashDeal,
       isTrending,
+      isDeleted,
     })
 
     if (page > result.pagination.total_page) {
@@ -142,14 +147,14 @@ export const getSingleProduct = async (req: Request, res: Response, next: NextFu
 export const deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params
-    const product = await Product.findByIdAndDelete(id)
+    const product = await Product.findById(id)
     if (!product) {
       return res.status(404).json({
         success: false,
         message: 'product not found',
       })
     }
-
+    await Product.findByIdAndUpdate(id, { isDeleted: true })
     return res.status(200).json({
       success: true,
       message: 'Product deleted successfully',

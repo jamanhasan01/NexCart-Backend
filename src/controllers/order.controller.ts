@@ -65,7 +65,7 @@ export const getUserOrders = async (req: AuthRequest, res: Response, next: NextF
   }
 }
 
-export const deleteOrder = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const cancelOrder = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const orderId = req.params.orderId
 
   const order = await Order.findById(orderId)

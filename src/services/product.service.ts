@@ -28,14 +28,14 @@ export const getAllProductsService = async ({
   isFlashDeal,
   isTrending,
   status,
+  isDeleted,
 }: IProductQuery) => {
-  const filter: any = {}
+  const filter: any = { isDeleted }
 
   /* =============================== Search Filter ================================ */
   if (search) {
     const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    
-    
+
     filter.$or = [
       { name: { $regex: safeSearch, $options: 'i' } },
       { brand: { $regex: safeSearch, $options: 'i' } },
@@ -81,6 +81,12 @@ export const getAllProductsService = async ({
   /* =============================== Product ID Filter ================================ */
   if (productId) {
     filter.productID = productId
+  }
+
+  /* =============================== Soft Delete ================================ */
+
+  if (typeof isDeleted === 'boolean') {
+    filter.isDeleted = isDeleted
   }
 
   /* =============================== Price Filter ================================ */

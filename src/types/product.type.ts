@@ -15,7 +15,6 @@ export interface IProduct {
 
   stock: number
 
-  
   images: string[]
   thumbnail: string
   isTrending: boolean
@@ -26,6 +25,7 @@ export interface IProduct {
   status: ProductStatus
   createdAt?: Date
   updatedAt?: Date
+  isDeleted?: boolean
 }
 
 /* =============================== Category Interface ================================ */
@@ -37,5 +37,3 @@ export interface ICategory {
   createdAt?: Date
   updatedAt?: Date
 }
-
-

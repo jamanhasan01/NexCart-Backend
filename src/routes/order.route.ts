@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import {
+  cancelOrder,
   createOrder,
-  deleteOrder,
+
   getAllOrders,
   getUserOrders,
 } from '../controllers/order.controller'
@@ -11,5 +12,5 @@ const router = Router()
 router.post('/order', verifyToken, createOrder)
 router.get('/orders', verifyToken, getAllOrders)
 router.get('/orders/my-orders', verifyToken, getUserOrders)
-router.patch('/order/cancel/:orderId', verifyToken, deleteOrder)
+router.patch('/order/cancel/:orderId', verifyToken, cancelOrder)
 export default router

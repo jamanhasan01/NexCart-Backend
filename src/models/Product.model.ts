@@ -1,7 +1,6 @@
 import mongoose from 'mongoose'
 import { IProduct } from '../types/product.type'
 
-
 /* =============================== Complete Product Schema ================================ */
 const productSchema = new mongoose.Schema<IProduct>(
   {
@@ -94,13 +93,16 @@ const productSchema = new mongoose.Schema<IProduct>(
       enum: ['active', 'inactive', 'draft', 'archived'],
       default: 'draft',
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   {
     timestamps: true,
   },
 )
-
 
 /* =============================== Model Export ================================ */
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema)
