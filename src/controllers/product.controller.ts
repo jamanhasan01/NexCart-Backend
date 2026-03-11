@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 import {
   createProductService,
   getAllProductsService,
+  getProductStatsService,
   getSingleProductService,
   updatProductService,
 } from '../services/product.service'
@@ -239,6 +240,22 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
     res.status(200).json({
       success: true,
       data: product,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+/* =============================== get product stats ================================ */
+
+export const getProductStats = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const stats = await getProductStatsService()
+
+    res.status(200).json({
+      success: true,
+      message: 'Product stats retrieved successfully',
+      data: stats,
     })
   } catch (error) {
     next(error)

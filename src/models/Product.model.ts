@@ -104,6 +104,12 @@ const productSchema = new mongoose.Schema<IProduct>(
   },
 )
 
+// productSchema.index({ name: 1 })
+// productSchema.index({ brand: 1 })
+// productSchema.index({ category: 1 })
+// productSchema.index({ price: 1 })
+// productSchema.index({ createdAt: -1 })
+
 /* =============================== Model Export ================================ */
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema)
 

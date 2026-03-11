@@ -14,7 +14,8 @@ export const createProductService = async (data: IProduct) => {
   })
 }
 
-/* =============================== get products + dashboard stats ================================ */
+/* =============================== get all products ================================ */
+
 export const getAllProductsService = async ({
   page = 1,
   limit = 10,
@@ -30,9 +31,16 @@ export const getAllProductsService = async ({
   status,
   isDeleted,
 }: IProductQuery) => {
-  const filter: any = { isDeleted }
+  const filter: any = {}
 
-  /* =============================== Search Filter ================================ */
+  /* =============================== Soft Delete ================================ */
+
+  if (typeof isDeleted === 'boolean') {
+    filter.isDeleted = isDeleted
+  }
+
+  /* =============================== Search ================================ */
+
   if (search) {
     const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -43,12 +51,14 @@ export const getAllProductsService = async ({
     ]
   }
 
-  /* =============================== Status Filter ================================ */
+  /* =============================== Status ================================ */
+
   if (status && status !== 'all') {
     filter.status = status
   }
 
-  /* =============================== Category Filter ================================ */
+  /* =============================== Category ================================ */
+
   if (categories) {
     const categorySlug = Array.isArray(categories) ? categories[0] : categories
 
@@ -60,12 +70,6 @@ export const getAllProductsService = async ({
     if (!category) {
       return {
         products: [],
-        stats: {
-          totalStock: 0,
-          totalInventoryValue: 0,
-          activeProducts: 0,
-          lowStock: 0,
-        },
         pagination: {
           page,
           limit,
@@ -78,18 +82,14 @@ export const getAllProductsService = async ({
     filter.category = category._id
   }
 
-  /* =============================== Product ID Filter ================================ */
+  /* =============================== Product ID ================================ */
+
   if (productId) {
     filter.productID = productId
   }
 
-  /* =============================== Soft Delete ================================ */
+  /* =============================== Price ================================ */
 
-  if (typeof isDeleted === 'boolean') {
-    filter.isDeleted = isDeleted
-  }
-
-  /* =============================== Price Filter ================================ */
   if (minPrice || maxPrice) {
     filter.price = {
       ...(minPrice && { $gte: Number(minPrice) }),
@@ -98,11 +98,13 @@ export const getAllProductsService = async ({
   }
 
   /* =============================== Flags ================================ */
+
   if (isFlashDeal === 'true') filter.isFlashDeal = true
   if (isCombo === 'true') filter.isCombo = true
   if (isTrending === 'true') filter.isTrending = true
 
   /* =============================== Sorting ================================ */
+
   let sortStage: any = { createdAt: -1 }
 
   if (sort) {
@@ -112,86 +114,21 @@ export const getAllProductsService = async ({
   }
 
   /* =============================== Pagination ================================ */
+
   const skip = (page - 1) * limit
 
-  /* =============================== Aggregation ================================ */
-  const result = await Product.aggregate([
-    { $match: filter },
+  /* =============================== Query ================================ */
 
-    {
-      $facet: {
-        /* =============================== Products ================================ */
-        products: [
-          { $sort: sortStage },
-          { $skip: skip },
-          { $limit: limit },
+  const [products, total_product] = await Promise.all([
+    Product.find(filter).populate('category').sort(sortStage).skip(skip).limit(limit),
 
-          {
-            $lookup: {
-              from: 'categories',
-              localField: 'category',
-              foreignField: '_id',
-              as: 'category',
-            },
-          },
-
-          {
-            $unwind: {
-              path: '$category',
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-        ],
-
-        /* =============================== Total Products ================================ */
-        totalCount: [{ $count: 'count' }],
-
-        /* =============================== Inventory Stats ================================ */
-        inventoryStats: [
-          {
-            $group: {
-              _id: null,
-
-              totalStock: {
-                $sum: { $toInt: '$stock' },
-              },
-
-              totalInventoryValue: {
-                $sum: {
-                  $multiply: [{ $toDouble: '$price' }, { $toInt: '$stock' }],
-                },
-              },
-            },
-          },
-        ],
-
-        /* =============================== Active Products ================================ */
-        activeProducts: [{ $match: { status: 'active' } }, { $count: 'count' }],
-
-        /* =============================== Low Stock ================================ */
-        lowStock: [{ $match: { stock: { $lt: 10 } } }, { $count: 'count' }],
-      },
-    },
+    Product.countDocuments(filter),
   ])
 
-  const data = result[0]
-
-  const total_product = data?.totalCount?.[0]?.count || 0
-
-  const inventoryStats = data?.inventoryStats?.[0] || {
-    totalStock: 0,
-    totalInventoryValue: 0,
-  }
+  /* =============================== Return ================================ */
 
   return {
-    products: data.products || [],
-
-    stats: {
-      totalStock: inventoryStats.totalStock,
-      totalInventoryValue: inventoryStats.totalInventoryValue,
-      activeProducts: data?.activeProducts?.[0]?.count || 0,
-      lowStock: data?.lowStock?.[0]?.count || 0,
-    },
+    products,
     pagination: {
       page,
       limit,
@@ -215,4 +152,56 @@ export const updatProductService = async (id: string, payload: Partial<IProduct>
     new: true,
     runValidators: true,
   })
+}
+
+/* =============================== get product stats service ================================ */
+
+export const getProductStatsService = async () => {
+  const stats = await Product.aggregate([
+    {
+      $facet: {
+        /* =============================== inventory ================================ */
+
+        inventoryStats: [
+          {
+            $group: {
+              _id: null,
+
+              totalStock: {
+                $sum: { $toInt: '$stock' },
+              },
+
+              totalInventoryValue: {
+                $sum: {
+                  $multiply: [{ $toDouble: '$price' }, { $toInt: '$stock' }],
+                },
+              },
+            },
+          },
+        ],
+
+        /* =============================== active products ================================ */
+
+        activeProducts: [{ $match: { status: 'active', isDeleted: false } }, { $count: 'count' }],
+
+        /* =============================== low stock ================================ */
+
+        lowStock: [{ $match: { stock: { $lt: 10 }, isDeleted: false } }, { $count: 'count' }],
+      },
+    },
+  ])
+
+  const data = stats[0]
+
+  const inventoryStats = data?.inventoryStats?.[0] || {
+    totalStock: 0,
+    totalInventoryValue: 0,
+  }
+
+  return {
+    totalStock: inventoryStats.totalStock,
+    totalInventoryValue: inventoryStats.totalInventoryValue,
+    activeProducts: data?.activeProducts?.[0]?.count || 0,
+    lowStock: data?.lowStock?.[0]?.count || 0,
+  }
 }

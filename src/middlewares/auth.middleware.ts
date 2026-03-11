@@ -49,7 +49,7 @@ export const authorizeRoles =
   (...roles: string[]) =>
   (req: AuthRequest, res: Response, next: NextFunction) => {
     const user = req.user
-    console.log(roles)
+
 
     if (!user) {
       return res.status(401).json({
