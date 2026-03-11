@@ -154,7 +154,7 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
         message: 'product not found',
       })
     }
-    await Product.findByIdAndUpdate(id, { isDeleted: true })
+    await Product.findByIdAndDelete(id)
     return res.status(200).json({
       success: true,
       message: 'Product deleted successfully',

@@ -10,7 +10,6 @@ import { removeOrderedItemsFromCart } from './cart.service'
 
 export const createOrderService = async (userId: string, payload: ICreateOrderPayload) => {
   const items = []
-  let subtotal = 0
 
   for (const item of payload.items) {
     const product = await Product.findById(item.product)
@@ -23,10 +22,9 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
       throw new Error(`${product.name} is out of stock`)
     }
 
-    subtotal += product.price * item.quantity
-
     items.push({
       product: product._id,
+      productId: product.productID,
       name: product.name,
       price: product.price,
       quantity: item.quantity,
@@ -39,20 +37,12 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
     await product.save()
   }
 
-  const shipping = 60
-  const total = subtotal + shipping
-
   const order = await Order.create({
     orderId: payload.orderId,
     user: userId,
     items,
     shippingAddress: payload.shippingAddress,
-    subtotal,
-    shipping,
-    total,
   })
-
-
 
   /* ================= clear cart ================= */
 
@@ -61,7 +51,6 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
   return order
 }
 
-/* =============================== get orders + dashboard stats ================================ */
 /* =============================== get orders + stats ================================ */
 export const getAllOrderService = async ({
   page = 1,
@@ -115,15 +104,6 @@ export const getAllOrderService = async ({
             },
           },
           { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-
-          {
-            $lookup: {
-              from: 'products',
-              localField: 'items.product',
-              foreignField: '_id',
-              as: 'products',
-            },
-          },
         ],
 
         /* =============================== total orders ================================ */

@@ -38,12 +38,12 @@ export const createOrder = async (req: AuthRequest, res: Response, next: NextFun
 export const getAllOrders = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const page = Number(req.query.page) || 1
   const limit = Number(req.query.limit) || 10
-    const search = req.query.search as string
+  const search = req.query.search as string
   const status = req.query.status as string
   const select = req.query.select as string
 
   try {
-    const order = await getAllOrderService({ page, limit, select ,search, status})
+    const order = await getAllOrderService({ page, limit, select, search, status })
     res.status(200).json({ success: true, data: order })
   } catch (error) {
     next(error)

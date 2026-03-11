@@ -4,7 +4,7 @@ import { OrderStatus } from '../types/order.type'
 /* =============================== order item schema ================================ */
 
 const orderItemSchema = new Schema(
- {
+  {
     product: {
       type: Schema.Types.ObjectId,
       ref: 'Product',
@@ -25,7 +25,10 @@ const orderItemSchema = new Schema(
       type: Number,
       required: true,
     },
-
+    productId: {
+      type: String,
+      required: true,
+    },
     image: {
       type: String,
     },
@@ -68,6 +71,12 @@ const orderSchema = new Schema(
       type: String,
       enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
       default: 'pending',
+    },
+
+    paymentStatus: {
+      type: String,
+      enum: ['unpaid', 'paid', 'failed', 'refunded'],
+      default: 'unpaid',
     },
   },
   {
