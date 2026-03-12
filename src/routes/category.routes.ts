@@ -1,14 +1,26 @@
-import { Router } from "express";
+/* =============================== category routes ================================ */
+
+import { Router } from 'express'
 import {
   createProductCategory,
   getAllCategories,
-} from "../controllers/category.controller";
-import { upload } from "../middlewares/upload.middleware";
+  updateProductCategory,
+  deleteProductCategory,
+} from '../controllers/category.controller'
+import { upload } from '../middlewares/upload.middleware'
 
-const router = Router();
-/* =============================== category routes ================================ */
-router.post("/categories", upload.none(), createProductCategory);
+const router = Router()
 
-router.get("/categories", getAllCategories);
+/* =============================== create category ================================ */
+router.post('/categories', upload.none(), createProductCategory)
 
-export default router;
+/* =============================== get all categories ================================ */
+router.get('/categories', getAllCategories)
+
+/* =============================== update category ================================ */
+router.patch('/categories/:id', upload.none(), updateProductCategory)
+
+/* =============================== delete category ================================ */
+router.delete('/categories/:id', deleteProductCategory)
+
+export default router

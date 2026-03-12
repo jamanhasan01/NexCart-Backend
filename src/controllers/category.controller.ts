@@ -1,5 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
-import { createProductCategoryService } from '../services/category.service'
+import {
+  createProductCategoryService,
+  deleteProductCategoryService,
+  updateProductCategoryService,
+} from '../services/category.service'
 import Category from '../models/Category.model'
 
 /* =============================== create product category  controller ================================ */
@@ -33,6 +37,40 @@ export const getAllCategories = async (req: Request, res: Response, next: NextFu
     const result = await Category.find().select(select || '')
     const total = await Category.countDocuments()
     res.status(200).json({ success: true, data: result, total })
+  } catch (error) {
+    next(error)
+  }
+}
+
+/* =============================== update product category controller ================================ */
+export const updateProductCategory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = String(req.params.id) // ✅ force string
+    const payload = req.body
+
+    const result = await updateProductCategoryService(id, payload)
+
+    res.status(200).json({
+      success: true,
+      message: 'Category updated successfully',
+      data: result,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+/* =============================== delete product category controller ================================ */
+export const deleteProductCategory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = String(req.params.id) // ✅ fix typescript error
+
+    await deleteProductCategoryService(id)
+
+    res.status(200).json({
+      success: true,
+      message: 'Category deleted successfully',
+    })
   } catch (error) {
     next(error)
   }

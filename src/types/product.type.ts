@@ -37,3 +37,10 @@ export interface ICategory {
   createdAt?: Date
   updatedAt?: Date
 }
+
+/* =============================== update category payload ================================ */
+
+export interface IUpdateCategory {
+  name?: string
+  icon?: string
+}
