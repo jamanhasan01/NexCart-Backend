@@ -17,7 +17,11 @@ dotenv.config()
 const app = express()
 /* =============================== CORS CONFIG ================================ */
 /* =============================== CORS CONFIG ================================ */
-const allowedOrigins = ['http://localhost:3000', 'https://zuniva-frontend.vercel.app']
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://zuniva-frontend.vercel.app',
+  'http://vte76kuoixqulhuazue0vscp.187.77.155.174.sslip.io',
+]
 
 app.use(
   cors({
