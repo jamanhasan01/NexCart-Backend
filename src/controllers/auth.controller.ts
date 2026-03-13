@@ -79,13 +79,19 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 
     /* =============================== set cookie ================================ */
 
+    // res.cookie('accessToken', token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production',
+    //   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    //   maxAge: 7 * 24 * 60 * 60 * 1000,
+    // })
     res.cookie('accessToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: false, // localhost
+      sameSite: 'lax', // IMPORTANT for cross-origin
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
     })
-   
     /* =============================== success response ================================ */
 
     res.status(200).json({
