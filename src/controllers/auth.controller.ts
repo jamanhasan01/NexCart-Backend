@@ -85,7 +85,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
-
+   
     /* =============================== success response ================================ */
 
     res.status(200).json({

@@ -20,7 +20,7 @@ const app = express()
 const allowedOrigins = [
   'http://localhost:3000',
   'https://zuniva-frontend.vercel.app',
-  'http://vte76kuoixqulhuazue0vscp.187.77.155.174.sslip.io',
+  'http://vte76kuoixqulhuazue0vscp.187.77.155.174.sslip.io'
 ]
 
 app.use(
