@@ -1,9 +1,9 @@
 /* =============================== IMPORTS ================================ */
 
-import multer from "multer"
-import path from "path"
-import fs from "fs"
-import sharp from "sharp"
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
+import sharp from 'sharp'
 
 /* =============================== MULTER MEMORY STORAGE ================================ */
 
@@ -11,21 +11,20 @@ const storage = multer.memoryStorage()
 
 /* =============================== FILE FILTER ================================ */
 
-const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
-  const allowed = ["image/jpeg", "image/png", "image/webp"]
+const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
+  const allowed = ['image/jpeg', 'image/png', 'image/webp']
 
   if (allowed.includes(file.mimetype)) {
     cb(null, true)
   } else {
-    cb(new Error("Only image files allowed"))
+    cb(new Error('Only image files allowed'))
   }
 }
 
 /* =============================== CREATE UPLOADER ================================ */
 
 export const createUploader = (folderName: string) => {
-
-  const uploadPath = path.join(process.cwd(), "uploads", folderName)
+  const uploadPath = path.join(process.cwd(), 'uploads', folderName)
 
   if (!fs.existsSync(uploadPath)) {
     fs.mkdirSync(uploadPath, { recursive: true })
@@ -43,26 +42,40 @@ export const createUploader = (folderName: string) => {
 
   const optimizeImage = async (req: any, res: any, next: any) => {
     try {
-      if (!req.file) return next()
+      /* =============================== SINGLE FILE ================================ */
 
-      const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`
+      if (req.file) {
+        const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`
+        const filepath = path.join(uploadPath, filename)
 
-      const filepath = path.join(uploadPath, filename)
+        await sharp(req.file.buffer).resize(800).webp({ quality: 80 }).toFile(filepath)
 
-      await sharp(req.file.buffer)
-        .resize(1200) // max width
-        .webp({ quality: 80 }) // compression
-        .toFile(filepath)
+        req.file.filename = filename
+        req.file.path = `/uploads/${folderName}/${filename}`
+      }
 
-      req.file.filename = filename
-      req.file.path = `/uploads/${folderName}/${filename}`
+      /* =============================== MULTIPLE FILES ================================ */
+
+      if (req.files && Array.isArray(req.files)) {
+        const images: string[] = []
+
+        for (const file of req.files) {
+          const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`
+          const filepath = path.join(uploadPath, filename)
+
+          await sharp(file.buffer).resize(1200).webp({ quality: 80 }).toFile(filepath)
+
+          images.push(`/uploads/${folderName}/${filename}`)
+        }
+
+        req.body.images = images
+      }
 
       next()
     } catch (error) {
       next(error)
     }
   }
-
   return {
     upload,
     optimizeImage,

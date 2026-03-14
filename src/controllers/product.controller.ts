@@ -30,6 +30,9 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       isDeleted,
     } = req.body
 
+
+    
+
     if (!name || !description || !price || !stock || !category) {
       return res.status(400).json({
         success: false,
