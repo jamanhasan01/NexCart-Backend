@@ -173,16 +173,21 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
         }
       }
 
-      avatar = `/uploads/users/${image.filename}`
+      avatar = image.path
     }
+
+
+
+
+    
 
     /* =============================== UPDATE USER ================================ */
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
-        name,
-        phone,
-        avatar,
+        ...(name && { name }),
+        ...(phone && { phone }),
+        ...(avatar && { avatar }),
       },
       { new: true, runValidators: true },
     )

@@ -4,6 +4,7 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import sharp from 'sharp'
+import { NextFunction } from 'express'
 
 /* =============================== MULTER MEMORY STORAGE ================================ */
 
@@ -38,9 +39,10 @@ export const createUploader = (folderName: string) => {
     },
   })
 
+
   /* =============================== IMAGE OPTIMIZER MIDDLEWARE ================================ */
 
-  const optimizeImage = async (req: any, res: any, next: any) => {
+  const optimizeImage = async (req: any, res: any, next: NextFunction) => {
     try {
       /* =============================== SINGLE FILE ================================ */
 
@@ -48,7 +50,7 @@ export const createUploader = (folderName: string) => {
         const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`
         const filepath = path.join(uploadPath, filename)
 
-        await sharp(req.file.buffer).resize(800).webp({ quality: 80 }).toFile(filepath)
+        await sharp(req.file.buffer).resize(400).webp({ quality: 80 }).toFile(filepath)
 
         req.file.filename = filename
         req.file.path = `/uploads/${folderName}/${filename}`
@@ -56,19 +58,20 @@ export const createUploader = (folderName: string) => {
 
       /* =============================== MULTIPLE FILES ================================ */
 
-      const images: string[] = []
+      if (req.files && Array.isArray(req.files)) {
+        const images: string[] = []
 
-      for (const file of req.files) {
-        const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`
+        for (const file of req.files) {
+          const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`
+          const filepath = path.join(uploadPath, filename)
 
-        const filepath = path.join(uploadPath, filename)
+          await sharp(file.buffer).resize(1200).webp({ quality: 80 }).toFile(filepath)
 
-        await sharp(file.buffer).resize(1200).webp({ quality: 80 }).toFile(filepath)
+          images.push(`/uploads/${folderName}/${filename}`)
+        }
 
-        images.push(`/uploads/${folderName}/${filename}`)
+        req.body.images = images
       }
-
-      req.body.images = images
 
       next()
     } catch (error) {

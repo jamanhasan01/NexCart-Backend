@@ -54,7 +54,6 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 
     const uploadedImages = req.body.images || []
 
-    
     /* =============================== CREATE PRODUCT ================================ */
 
     const product = await createProductService({
@@ -73,7 +72,6 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       images: uploadedImages,
       thumbnail: uploadedImages[0] || '',
       status,
-    
     })
 
     res.status(201).json({
