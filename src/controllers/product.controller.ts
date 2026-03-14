@@ -109,7 +109,6 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
     const select = query.select ? (query.select as string).split(',').join(' ') : ''
     /* =============================== Soft Delete ================================ */
 
-    const isDeleted = query.isDeleted !== undefined ? query.isDeleted === 'true' : false
     const result = await getAllProductsService({
       page,
       limit,
@@ -124,7 +123,6 @@ export const getAllProduct = async (req: Request, res: Response, next: NextFunct
       isCombo,
       isFlashDeal,
       isTrending,
-      isDeleted,
     })
 
     if (page > result.pagination.total_page) {

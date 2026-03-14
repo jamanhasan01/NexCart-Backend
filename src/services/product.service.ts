@@ -29,15 +29,8 @@ export const getAllProductsService = async ({
   isFlashDeal,
   isTrending,
   status,
-  isDeleted,
 }: IProductQuery) => {
   const filter: any = {}
-
-  /* =============================== Soft Delete ================================ */
-
-  if (typeof isDeleted === 'boolean') {
-    filter.isDeleted = isDeleted
-  }
 
   /* =============================== Search ================================ */
 

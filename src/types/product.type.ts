@@ -25,7 +25,6 @@ export interface IProduct {
   status: ProductStatus
   createdAt?: Date
   updatedAt?: Date
-  isDeleted?: boolean
 }
 
 /* =============================== Category Interface ================================ */
