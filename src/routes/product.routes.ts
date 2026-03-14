@@ -9,14 +9,14 @@ import {
 } from '../controllers/product.controller'
 import { createUploader } from '../middlewares/upload.middleware'
 
-const productUpload = createUploader("products")
+const { upload, optimizeImage } = createUploader('products')
 const router = Router()
 /* =============================== product routes ================================ */
-router.post('/products', productUpload.array('files', 5), createProduct)
+router.post('/products', upload.array('files', 5), optimizeImage, createProduct)
 router.get('/products', getAllProduct)
 router.get('/products/stats', getProductStats)
 router.get('/products/:id', getSingleProduct)
 router.delete('/products/:id', deleteProduct)
-router.patch('/products/:id', productUpload.none(), updateProduct)
+router.patch('/products/:id', upload.none(), optimizeImage, updateProduct)
 
 export default router
