@@ -7,11 +7,7 @@ import { IProductQuery } from '../types/query.type'
 
 /* =============================== product create business logic ================================ */
 export const createProductService = async (data: IProduct) => {
-  return await Product.create({
-    ...data,
-    images: [],
-    thumbnail: '',
-  })
+  return await Product.create(data)
 }
 
 /* =============================== get all products ================================ */

@@ -56,20 +56,19 @@ export const createUploader = (folderName: string) => {
 
       /* =============================== MULTIPLE FILES ================================ */
 
-      if (req.files && Array.isArray(req.files)) {
-        const images: string[] = []
+      const images: string[] = []
 
-        for (const file of req.files) {
-          const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`
-          const filepath = path.join(uploadPath, filename)
+      for (const file of req.files) {
+        const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`
 
-          await sharp(file.buffer).resize(1200).webp({ quality: 80 }).toFile(filepath)
+        const filepath = path.join(uploadPath, filename)
 
-          images.push(`/uploads/${folderName}/${filename}`)
-        }
+        await sharp(file.buffer).resize(1200).webp({ quality: 80 }).toFile(filepath)
 
-        req.body.images = images
+        images.push(`/uploads/${folderName}/${filename}`)
       }
+
+      req.body.images = images
 
       next()
     } catch (error) {

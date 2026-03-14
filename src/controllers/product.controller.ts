@@ -12,6 +12,8 @@ import {
 
 import Product from '../models/Product.model'
 
+/* =============================== CREATE PRODUCT ================================ */
+
 export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
@@ -27,11 +29,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       isCombo,
       tags,
       status,
-      isDeleted,
     } = req.body
-
-
-    
 
     if (!name || !description || !price || !stock || !category) {
       return res.status(400).json({
@@ -42,7 +40,8 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 
     const productID = `PRD-${nanoid(8).toUpperCase()}`
 
-    /* =============================== FIXED TAG PARSING ================================ */
+    /* =============================== TAG PARSING ================================ */
+
     let parsedTags: string[] = []
 
     if (Array.isArray(tags)) {
@@ -51,7 +50,14 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       parsedTags = [tags]
     }
 
-    const query = {
+    /* =============================== IMAGES FROM MIDDLEWARE ================================ */
+
+    const uploadedImages = req.body.images || []
+
+    
+    /* =============================== CREATE PRODUCT ================================ */
+
+    const product = await createProductService({
       productID,
       name,
       description,
@@ -64,24 +70,11 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       isFlashDeal,
       isCombo,
       tags: parsedTags,
-      images: [],
-      thumbnail: '',
+      images: uploadedImages,
+      thumbnail: uploadedImages[0] || '',
       status,
-      isDeleted,
-    }
-    const product = await createProductService(query)
-    if (req.files && Array.isArray(req.files)) {
-      const files = req.files as Express.Multer.File[]
-
-      const uploadedImages = files.map((file) => {
-        return `/uploads/products/${file.filename}`
-      })
-
-      await Product.findByIdAndUpdate(product._id, {
-        images: uploadedImages,
-        thumbnail: uploadedImages[0],
-      })
-    }
+    
+    })
 
     res.status(201).json({
       success: true,
