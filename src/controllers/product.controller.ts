@@ -1,3 +1,5 @@
+import fs from 'fs'
+import path from 'path'
 import { NextFunction, Request, Response } from 'express'
 import { nanoid } from 'nanoid'
 import {
@@ -7,7 +9,7 @@ import {
   getSingleProductService,
   updatProductService,
 } from '../services/product.service'
-import { multipleImageUploadService } from '../services/image.upload.service'
+
 import Product from '../models/Product.model'
 
 export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
@@ -65,10 +67,17 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       isDeleted,
     }
     const product = await createProductService(query)
-
     if (req.files && Array.isArray(req.files)) {
       const files = req.files as Express.Multer.File[]
-      await multipleImageUploadService(files, product._id.toString())
+
+      const uploadedImages = files.map((file) => {
+        return `/uploads/products/${file.filename}`
+      })
+
+      await Product.findByIdAndUpdate(product._id, {
+        images: uploadedImages,
+        thumbnail: uploadedImages[0],
+      })
     }
 
     res.status(201).json({
@@ -156,6 +165,18 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
       })
     }
     await Product.findByIdAndDelete(id)
+    /* =============================== DELETE IMAGES ================================ */
+
+    if (product.images && product.images.length > 0) {
+      product.images.forEach((imagePath: string) => {
+        const fullPath = path.join(process.cwd(), imagePath)
+
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath)
+        }
+      })
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Product deleted successfully',

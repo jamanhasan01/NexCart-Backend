@@ -2,7 +2,10 @@ import { NextFunction, Request, Response } from 'express'
 import { getAllUserService, getSingleUserService } from '../services/user.service'
 import User from '../models/User.model'
 import { AuthRequest } from '../types/auth.type'
-import { singleImageUploadService } from '../services/image.upload.service'
+/* =============================== Update Profile Controller ================================ */
+
+import fs from 'fs'
+import path from 'path'
 
 /* =============================== Get All Users Controller ================================ */
 export const getAllUser = async (req: Request, res: Response) => {
@@ -108,6 +111,16 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
       })
     }
 
+    /* =============================== delete avatar ================================ */
+
+    if (user.avatar) {
+      const avatarPath = path.join(process.cwd(), user.avatar)
+
+      if (fs.existsSync(avatarPath)) {
+        fs.unlinkSync(avatarPath)
+      }
+    }
+
     /* =============================== delete user ================================ */
 
     await User.findByIdAndDelete(id)
@@ -116,15 +129,14 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
 
     return res.status(200).json({
       success: true,
-      message: 'User deleted successfully',
+      message: 'User and avatar deleted successfully',
     })
   } catch (error) {
     next(error)
   }
 }
 
-/* =============================== Update Profile Controller ================================ */
-
+/* =============================== update profile ================================ */
 export const updateProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId
@@ -137,17 +149,44 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
       })
     }
 
+    const user = await User.findById(userId)
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      })
+    }
+
     const { name, phone } = req.body
 
+    let avatar = user.avatar
+
+    /* =============================== HANDLE IMAGE ================================ */
+    if (image) {
+      /* delete old image */
+      if (user.avatar) {
+        const oldPath = path.join(process.cwd(), user.avatar)
+
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath)
+        }
+      }
+
+      avatar = `/uploads/users/${image.filename}`
+    }
+
+    /* =============================== UPDATE USER ================================ */
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { name, phone },
+      {
+        name,
+        phone,
+        avatar,
+      },
       { new: true, runValidators: true },
     )
 
-    if (image) {
-      await singleImageUploadService(image, userId)
-    }
     return res.status(200).json({
       success: true,
       message: 'Profile updated successfully',

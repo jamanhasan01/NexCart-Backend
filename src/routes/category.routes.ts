@@ -7,18 +7,19 @@ import {
   updateProductCategory,
   deleteProductCategory,
 } from '../controllers/category.controller'
-import { upload } from '../middlewares/upload.middleware'
+import { createUploader } from '../middlewares/upload.middleware'
+const productUpload = createUploader("category")
 
 const router = Router()
 
 /* =============================== create category ================================ */
-router.post('/categories', upload.none(), createProductCategory)
+router.post('/categories', productUpload.none(), createProductCategory)
 
 /* =============================== get all categories ================================ */
 router.get('/categories', getAllCategories)
 
 /* =============================== update category ================================ */
-router.patch('/categories/:id', upload.none(), updateProductCategory)
+router.patch('/categories/:id', productUpload.none(), updateProductCategory)
 
 /* =============================== delete category ================================ */
 router.delete('/categories/:id', deleteProductCategory)

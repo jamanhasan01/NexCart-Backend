@@ -1,7 +1,23 @@
 import mongoose from 'mongoose'
 import { IProduct } from '../types/product.type'
 
-/* =============================== Complete Product Schema ================================ */
+/* =============================== Image Sub Schema ================================ */
+const imageSchema = new mongoose.Schema(
+  {
+    publicId: {
+      type: String,
+      required: true,
+    },
+
+    url: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false },
+)
+
+/* =============================== Product Schema ================================ */
 const productSchema = new mongoose.Schema<IProduct>(
   {
     productID: {
@@ -14,14 +30,15 @@ const productSchema = new mongoose.Schema<IProduct>(
     name: {
       type: String,
       required: true,
-      index: true,
       trim: true,
+      index: true,
     },
 
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
       required: true,
+      index: true,
     },
 
     brand: {
@@ -34,6 +51,7 @@ const productSchema = new mongoose.Schema<IProduct>(
       type: Number,
       required: true,
       min: 0,
+      index: true,
     },
 
     discount: {
@@ -48,54 +66,61 @@ const productSchema = new mongoose.Schema<IProduct>(
       required: true,
     },
 
-    /* =============================== Product Schema ================================ */
+    /* =============================== Images ================================ */
 
-    images: [
-      {
-        publicId: {
-          type: String,
-          required: true,
-        },
-        url: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
-    thumbnail: { type: String },
+    images: {
+      type: [String],
+      default: [],
+    },
+
+    thumbnail: {
+      type: String,
+      default: '',
+    },
+
+    /* =============================== Inventory ================================ */
+
     stock: {
       type: Number,
       required: true,
       min: 0,
     },
 
+    /* =============================== Product Flags ================================ */
+
     isTrending: {
       type: Boolean,
       default: false,
+      index: true,
     },
 
     isFlashDeal: {
       type: Boolean,
       default: false,
+      index: true,
     },
 
     isCombo: {
       type: Boolean,
       default: false,
+      index: true,
     },
+
+    /* =============================== Tags ================================ */
 
     tags: {
       type: [String],
       default: [],
+      index: true,
     },
+
+    /* =============================== Status ================================ */
+
     status: {
       type: String,
       enum: ['active', 'inactive', 'draft', 'archived'],
       default: 'draft',
-    },
-    isDeleted: {
-      type: Boolean,
-      default: false,
+      index: true,
     },
   },
 
@@ -104,13 +129,16 @@ const productSchema = new mongoose.Schema<IProduct>(
   },
 )
 
-// productSchema.index({ name: 1 })
-// productSchema.index({ brand: 1 })
-// productSchema.index({ category: 1 })
-// productSchema.index({ price: 1 })
-// productSchema.index({ createdAt: -1 })
+/* =============================== Search Index ================================ */
 
-/* =============================== Model Export ================================ */
+productSchema.index({
+  name: 'text',
+  description: 'text',
+  brand: 'text',
+})
+
+/* =============================== Model ================================ */
+
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema)
 
 export default Product

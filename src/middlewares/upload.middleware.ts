@@ -1,57 +1,44 @@
-// import multer, { Options } from "multer";
-// import path from "path";
-// import fs from "fs";
-// /* =============================== this middleware for upload locally image store  ================================ */
-// /* ===============================
-//    Ensure upload directory exists
-// ================================ */
-// const uploadDir = path.join(process.cwd(), "public");
+/* =============================== MULTER UPLOAD ================================ */
 
-import multer, { Options } from "multer";
+import multer from "multer"
+import path from "path"
+import fs from "fs"
 
-// if (!fs.existsSync(uploadDir)) {
-//   fs.mkdirSync(uploadDir, { recursive: true });
-// }
+export const createUploader = (folderName: string) => {
 
-// const storage = multer.diskStorage({
-//   destination: (_req, _file, cb) => {
-//     cb(null, "public/");
-//   },
-//   filename: (_req, file, cb) => {
-//     const ext = path.extname(file.originalname);
-//     const name = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-//     cb(null, name);
-//   },
-// });
+  const uploadPath = path.join(process.cwd(), "uploads", folderName)
 
-/* ===============================   FILE TYPE CHECK (THIS IS IT) ================================ */
-
-const fileFilter: Options["fileFilter"] = (_req, file, cb) => {
-  const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
-  
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true); // ✅ allow
-  } else {
-    cb(new Error("Only image files are allowed")); // ❌ block
+  if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true })
   }
-};
 
-// /* ===============================
-//    Upload Middleware
-// ================================ */
-// export const upload = multer({
-//   storage,
-//   fileFilter,
-//   limits: {
-//     fileSize: 5 * 1024 * 1024, // 5MB
-//   },
-// });
-const storage=multer.memoryStorage()
-export const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
-  },
-});
+  const storage = multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      cb(null, uploadPath)
+    },
 
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname)
+      const name = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`
+      cb(null, name)
+    },
+  })
+
+  const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"]
+
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error("Only image files allowed"))
+    }
+  }
+
+  return multer({
+    storage,
+    fileFilter,
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
+  })
+}

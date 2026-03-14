@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { loginUserService, registerUserService } from '../services/auth.service'
 import { generateToken } from '../utils/jwt'
-import { singleImageUploadService } from '../services/image.upload.service'
+
 import User from '../models/User.model'
 import { AuthRequest } from '../types/auth.type'
 
@@ -23,9 +23,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
       message: 'user registerd successfully',
       data: user,
     })
-    if (req.file) {
-      singleImageUploadService(req.file, user._id.toString())
-    }
+   
   } catch (error: any) {
     next(error)
   }
