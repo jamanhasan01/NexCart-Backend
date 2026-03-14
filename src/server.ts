@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser'
 import connectDB from './config/connectDB'
 import cors from 'cors'
 import { errorMiddleware } from './middlewares/error.middleware'
+import path from 'path'
 
 dotenv.config()
 
@@ -20,7 +21,7 @@ const app = express()
 const allowedOrigins = [
   'http://localhost:3000',
   'https://zuniva-frontend.vercel.app',
-  'http://vte76kuoixqulhuazue0vscp.187.77.155.174.sslip.io'
+  'http://vte76kuoixqulhuazue0vscp.187.77.155.174.sslip.io',
 ]
 
 app.use(
@@ -55,6 +56,11 @@ app.get('/', (_req, res) => {
   res.send('server running well')
 })
 
+/* =============================== static uploads ================================ */
+
+/* =============================== static uploads ================================ */
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 /* =============================== All Route Global middle ware ================================ */
 app.use('/api/auth', authRoutes)
 app.use('/api', userRoute)
