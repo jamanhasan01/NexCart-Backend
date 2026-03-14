@@ -17,6 +17,6 @@ router.get('/products', getAllProduct)
 router.get('/products/stats', getProductStats)
 router.get('/products/:id', getSingleProduct)
 router.delete('/products/:id', deleteProduct)
-router.patch('/products/:id', upload.none(), optimizeImage, updateProduct)
+router.patch('/products/:id', upload.array('files', 5), optimizeImage, updateProduct)
 
 export default router

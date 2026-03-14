@@ -180,15 +180,13 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
 
 /* =============================== update product controller ================================ */
 
-/* =============================== helpers ================================ */
-const parseBoolean = (value: any) => value === 'true' || value === true
 
-/* =============================== update product controller ================================ */
+
+/* =============================== UPDATE PRODUCT CONTROLLER ================================ */
 export const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params as { id: string }
 
-    /* =============================== Request Body ================================ */
     const {
       name,
       description,
@@ -204,20 +202,24 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       status,
     } = req.body
 
-    /* =============================== Parse Tags ================================ */
+    /* =============================== TAG PARSING ================================ */
+
     let parsedTags: string[] | undefined
+
     if (tags) {
-      try {
-        parsedTags = JSON.parse(tags)
-      } catch {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid tags format',
-        })
+      if (Array.isArray(tags)) {
+        parsedTags = tags
+      } else if (typeof tags === 'string') {
+        parsedTags = [tags]
       }
     }
 
-    /* =============================== Build Update Payload ================================ */
+    /* =============================== IMAGES FROM MIDDLEWARE ================================ */
+
+    const uploadedImages = req.body.images || []
+
+    /* =============================== BUILD UPDATE PAYLOAD ================================ */
+
     const updatePayload: any = {
       ...(name && { name }),
       ...(description && { description }),
@@ -226,14 +228,22 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       ...(price && { price: Number(price) }),
       ...(discount && { discount: Number(discount) }),
       ...(stock && { stock: Number(stock) }),
-      ...(isTrending !== undefined && { isTrending: parseBoolean(isTrending) }),
-      ...(isFlashDeal !== undefined && { isFlashDeal: parseBoolean(isFlashDeal) }),
-      ...(isCombo !== undefined && { isCombo: parseBoolean(isCombo) }),
+      ...(isTrending !== undefined && { isTrending }),
+      ...(isFlashDeal !== undefined && { isFlashDeal }),
+      ...(isCombo !== undefined && { isCombo }),
       ...(parsedTags && { tags: parsedTags }),
       ...(status && { status }),
     }
 
-    /* =============================== Update Product ================================ */
+    /* =============================== IMAGE UPDATE ================================ */
+
+    if (uploadedImages.length > 0) {
+      updatePayload.images = uploadedImages
+      updatePayload.thumbnail = uploadedImages[0]
+    }
+
+    /* =============================== UPDATE PRODUCT ================================ */
+
     const product = await updatProductService(id, updatePayload)
 
     if (!product) {
@@ -243,13 +253,8 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       })
     }
 
-    // /* =============================== Image Upload ================================ */
-    // if (req.files && Array.isArray(req.files)) {
-    //   const files = req.files as Express.Multer.File[]
-    //   await multipleImageUploadService(files, product._id.toString())
-    // }
+    /* =============================== RESPONSE ================================ */
 
-    /* =============================== Response ================================ */
     res.status(200).json({
       success: true,
       data: product,
@@ -258,7 +263,6 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
     next(error)
   }
 }
-
 /* =============================== get product stats ================================ */
 
 export const getProductStats = async (req: Request, res: Response, next: NextFunction) => {

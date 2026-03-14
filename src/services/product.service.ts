@@ -149,7 +149,19 @@ export const getProductStatsService = async () => {
   const stats = await Product.aggregate([
     {
       $facet: {
-        /* =============================== inventory ================================ */
+        /* =============================== TOTAL PRODUCTS ================================ */
+
+        totalProducts: [{ $count: 'count' }],
+
+        /* =============================== ACTIVE PRODUCTS ================================ */
+
+        activeProducts: [{ $match: { status: 'active' } }, { $count: 'count' }],
+
+        /* =============================== LOW STOCK ================================ */
+
+        lowStock: [{ $match: { stock: { $lt: 10 } } }, { $count: 'count' }],
+
+        /* =============================== INVENTORY ================================ */
 
         inventoryStats: [
           {
@@ -157,40 +169,37 @@ export const getProductStatsService = async () => {
               _id: null,
 
               totalStock: {
-                $sum: { $toInt: '$stock' },
+                $sum: '$stock',
               },
 
               totalInventoryValue: {
                 $sum: {
-                  $multiply: [{ $toDouble: '$price' }, { $toInt: '$stock' }],
+                  $multiply: ['$price', '$stock'],
                 },
               },
             },
           },
         ],
-
-        /* =============================== active products ================================ */
-
-        activeProducts: [{ $match: { status: 'active', isDeleted: false } }, { $count: 'count' }],
-
-        /* =============================== low stock ================================ */
-
-        lowStock: [{ $match: { stock: { $lt: 10 }, isDeleted: false } }, { $count: 'count' }],
       },
     },
   ])
 
   const data = stats[0]
 
-  const inventoryStats = data?.inventoryStats?.[0] || {
+  const inventory = data?.inventoryStats?.[0] || {
     totalStock: 0,
     totalInventoryValue: 0,
   }
 
   return {
-    totalStock: inventoryStats.totalStock,
-    totalInventoryValue: inventoryStats.totalInventoryValue,
+    totalProducts: data?.totalProducts?.[0]?.count || 0,
+
     activeProducts: data?.activeProducts?.[0]?.count || 0,
+
     lowStock: data?.lowStock?.[0]?.count || 0,
+
+    totalStock: inventory.totalStock,
+
+    totalInventoryValue: inventory.totalInventoryValue,
   }
 }
