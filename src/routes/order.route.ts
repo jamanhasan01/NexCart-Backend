@@ -8,15 +8,15 @@ import {
   updateOrderStatus,
   updatePaymentStatus,
 } from '../controllers/order.controller'
-import { verifyToken } from '../middlewares/auth.middleware'
+import { authorizeRoles, verifyToken } from '../middlewares/auth.middleware'
 
 const router = Router()
-router.post('/order', verifyToken, createOrder)
-router.get('/orders', verifyToken, getAllOrders)
+router.post('/order', verifyToken, authorizeRoles('admin', 'super_admin'), createOrder)
+router.get('/orders', verifyToken, authorizeRoles('admin', 'super_admin'), getAllOrders)
 router.get('/orders/my-orders', verifyToken, getUserOrders)
 router.get('/orders/stats', getOrderStats)
 router.patch('/order/cancel/:orderId', verifyToken, cancelOrder)
-router.patch('/order/cancel/:orderId', verifyToken, cancelOrder)
-router.patch('/order/order-status/:orderId', verifyToken, updateOrderStatus)
-router.patch('/order/payment-status/:orderId', verifyToken, updatePaymentStatus)
+
+router.patch('/order/order-status/:orderId', verifyToken, authorizeRoles('admin', 'super_admin'), updateOrderStatus)
+router.patch('/order/payment-status/:orderId', verifyToken, authorizeRoles('admin', 'super_admin'), updatePaymentStatus)
 export default router
