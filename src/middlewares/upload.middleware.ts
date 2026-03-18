@@ -56,7 +56,7 @@ export const createUploader = (folderName: string) => {
         req.file.filename = filename
         req.file.path = `/uploads/${folderName}/${filename}`
       }
-
+      
       /* =============================== MULTIPLE FILES ================================ */
 
       if (req.files && Array.isArray(req.files)) {
