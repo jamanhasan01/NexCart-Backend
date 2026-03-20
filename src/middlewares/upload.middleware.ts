@@ -23,7 +23,7 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   }
 };
 
-/* =============================== CREATE UPLOADER ================================ */
+
 /* =============================== CREATE UPLOADER ================================ */
 export const createUploader = (folderName: string) => {
   const uploadPath = path.join("/data/uploads", folderName);
