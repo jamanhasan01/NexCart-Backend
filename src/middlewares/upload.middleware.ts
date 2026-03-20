@@ -26,7 +26,7 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
 
 /* =============================== CREATE UPLOADER ================================ */
 export const createUploader = (folderName: string) => {
-  const uploadPath = path.join("/home/uploads", folderName);
+  const uploadPath = path.join("/data/uploads", folderName);
 
   // const uploadPath = path.join(process.cwd(), 'uploads', folderName)
   fs.mkdirSync(uploadPath, { recursive: true });
