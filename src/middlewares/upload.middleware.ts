@@ -31,7 +31,6 @@ export const createUploader = (folderName: string) => {
   if (!fs.existsSync(uploadPath)) {
     fs.mkdirSync(uploadPath, { recursive: true })
   }
-
   const upload = multer({
     storage,
     fileFilter,
