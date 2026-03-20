@@ -59,7 +59,7 @@ app.get("/", (_req, res) => {
 /* =============================== static uploads ================================ */
 
 /* =============================== static uploads ================================ */
-app.use("/uploads", express.static("/var/www/zuniva-uploads"));
+app.use('/uploads', express.static('/home/uploads'))
 // app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 /* =============================== All Route Global middle ware ================================ */
 app.use("/api/auth", authRoutes);
