@@ -11,7 +11,7 @@ import {
 import { authorizeRoles, verifyToken } from '../middlewares/auth.middleware'
 
 const router = Router()
-router.post('/order', verifyToken, authorizeRoles('admin', 'super_admin'), createOrder)
+router.post('/order', verifyToken, createOrder)
 router.get('/orders', verifyToken, authorizeRoles('admin', 'super_admin'), getAllOrders)
 router.get('/orders/my-orders', verifyToken, getUserOrders)
 router.get('/orders/stats', getOrderStats)
