@@ -2,7 +2,6 @@ import Product from '../models/Product.model'
 import { IProduct } from '../types/product.type'
 
 import Category from '../models/Category.model'
-import mongoose from 'mongoose'
 import { IProductQuery } from '../types/query.type'
 
 /* =============================== product create business logic ================================ */
