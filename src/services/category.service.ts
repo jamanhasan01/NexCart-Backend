@@ -1,57 +1,80 @@
-import Category from '../models/Category.model'
-import { ICategory, IUpdateCategory } from '../types/product.type'
+/* =============================== IMPORTS ================================ */
+import Category from "../models/Category.model";
+import { generateSlug } from "../utils/generateSlug";
 
-/* ===============================  create products category business logic ================================ */
-export const createProductCategoryService = async (categories: ICategory[]) => {
-  const names = categories.map((c) => c.name)
+/* =============================== CREATE ================================ */
+export const createCategoryService = async (payload: any) => {
+  const slug = generateSlug(payload.name);
 
-  const existing = await Category.exists({ name: { $in: names } })
-  if (!!existing) {
-    throw new Error('One or more categories already exist')
-  }
-  // 🔥 generate slug manually (REQUIRED for insertMany)
-  const payload = categories.map((c) => ({
-    ...c,
-    slug: c.name.replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
-  }))
-  const result = await Category.insertMany(payload)
-  return result
-}
+  const exist = await Category.findOne({ slug });
+  if (exist) throw new Error("Category already exists");
 
+  const result = await Category.create({
+    ...payload,
+    slug,
+    parent: payload.parent || null,
+  });
 
-/* =============================== update product category business logic ================================ */
-export const updateProductCategoryService = async (id: string, payload: IUpdateCategory) => {
-  const updateData: Partial<IUpdateCategory & { slug?: string }> = { ...payload }
+  return result;
+};
 
-  // regenerate slug if name changes
+/* =============================== TREE BUILDER ================================ */
+const buildTree = (categories: any[]) => {
+  const map = new Map();
+
+  categories.forEach((cat) => {
+    map.set(cat._id.toString(), { ...cat, children: [] });
+  });
+
+  const tree: any[] = [];
+
+  categories.forEach((cat) => {
+    if (cat.parent) {
+      const parent = map.get(cat.parent.toString());
+      parent?.children.push(map.get(cat._id.toString()));
+    } else {
+      tree.push(map.get(cat._id.toString()));
+    }
+  });
+
+  return tree;
+};
+
+/* =============================== GET TREE ================================ */
+export const getCategoryTreeService = async () => {
+  const categories = await Category.find({ isActive: true })
+    .sort({ order: 1 })
+    .lean();
+
+  return buildTree(categories);
+};
+
+/* =============================== UPDATE ================================ */
+export const updateCategoryService = async (id: string, payload: any) => {
   if (payload.name) {
-    updateData.slug = payload.name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
+    payload.slug = generateSlug(payload.name);
   }
 
-  const result = await Category.findByIdAndUpdate(id, updateData, {
+  const updated = await Category.findByIdAndUpdate(id, payload, {
     new: true,
-    runValidators: true,
-  })
+  });
 
-  if (!result) {
-    const err: any = new Error('Category not found')
-    err.statusCode = 404
-    throw err
+  if (!updated) throw new Error("Category not found");
+
+  return updated;
+};
+
+/* =============================== DELETE ================================ */
+export const deleteCategoryService = async (id: string) => {
+  const hasChild = await Category.findOne({ parent: id });
+
+  if (hasChild) {
+    throw new Error("Cannot delete category with children");
   }
 
-  return result
-}
+  const deleted = await Category.findByIdAndDelete(id);
 
-/* =============================== delete product category business logic ================================ */
-export const deleteProductCategoryService = async (id: string) => {
-  const result = await Category.findByIdAndDelete(id)
+  if (!deleted) throw new Error("Category not found");
 
-  if (!result) {
-    throw new Error('Category not found')
-  }
-
-  return result
-}
+  return deleted;
+};

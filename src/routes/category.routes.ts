@@ -1,28 +1,20 @@
-/* =============================== category routes ================================ */
-
-import { Router } from 'express'
+/* =============================== IMPORTS ================================ */
+import express from "express";
 import {
-  createProductCategory,
-  getAllCategories,
-  updateProductCategory,
-  deleteProductCategory,
-} from '../controllers/category.controller'
-import { createUploader } from '../middlewares/upload.middleware'
-import { authorizeRoles, verifyToken } from '../middlewares/auth.middleware'
-const { upload, optimizeImage } = createUploader('category')
+  createCategory,
+  getCategoriesTree,
+  updateCategory,
+  deleteCategory,
+} from "../controllers/category.controller";
+import { createUploader } from "../middlewares/upload.middleware";
+const { upload, optimizeImage } = createUploader("categories");
 
-const router = Router()
+const router = express.Router();
 
-/* =============================== create category ================================ */
-router.post('/categories', upload.none(),verifyToken, authorizeRoles('admin', 'super_admin'), createProductCategory)
+/* =============================== ROUTES ================================ */
+router.post("/categories", upload.single("image"), optimizeImage, createCategory);
+router.get("/categories/tree", getCategoriesTree);
+router.patch("/categories/:id", updateCategory);
+router.delete("/categories/:id", deleteCategory);
 
-/* =============================== get all categories ================================ */
-router.get('/categories', getAllCategories)
-
-/* =============================== update category ================================ */
-router.patch('/categories/:id', upload.none(),verifyToken, authorizeRoles('admin', 'super_admin'), updateProductCategory)
-
-/* =============================== delete category ================================ */
-router.delete('/categories/:id',verifyToken, authorizeRoles('admin', 'super_admin'), deleteProductCategory)
-
-export default router
+export default router;

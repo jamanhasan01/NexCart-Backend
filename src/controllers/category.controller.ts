@@ -1,97 +1,90 @@
-import { NextFunction, Request, Response } from "express";
+/* =============================== IMPORTS ================================ */
+import { Response, NextFunction } from "express";
 import {
-  createProductCategoryService,
-  deleteProductCategoryService,
-  updateProductCategoryService,
+  createCategoryService,
+  getCategoryTreeService,
+  updateCategoryService,
+  deleteCategoryService,
 } from "../services/category.service";
-import Category from "../models/Category.model";
+import { AuthRequest } from "../types/auth.type";
 
-/* =============================== create product category  controller ================================ */
-export const createProductCategory = async (
-  req: Request,
+/* =============================== CREATE ================================ */
+export const createCategory = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { categories } = req.body;
+    const image = req.file ? `/uploads/category/${req.file.filename}` : null;
 
-    if (!Array.isArray(categories)) {
-      const err: any = new Error("Categories must be an array");
-      err.statusCode = 400;
-      throw err;
-    }
+    const payload = {
+      ...req.body,
+      image,
+    };
 
-    if (categories.length === 0) {
-      const err: any = new Error("Provide at least one category");
-      err.statusCode = 400;
-      throw err;
-    }
+    const result = await createCategoryService(payload);
 
-    const result = await createProductCategoryService(categories);
-
-    res.status(201).json({ success: true, data: result });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getAllCategories = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const select = req.query.select
-      ? (req.query.select as string).split(",").join(" ")
-      : "";
-    const result = await Category.find()
-      .select(select || "")
-      .sort("-createdAt");
-    const total = await Category.countDocuments();
-    res.status(200).json({ success: true, data: result, total });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/* =============================== update product category controller ================================ */
-export const updateProductCategory = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const id = String(req.params.id); // ✅ force string
-    const payload = req.body;
-
-    const result = await updateProductCategoryService(id, payload);
-
-    res.status(200).json({
+    res.status(201).json({
       success: true,
-      message: "Category updated successfully",
       data: result,
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
-/* =============================== delete product category controller ================================ */
-export const deleteProductCategory = async (
-  req: Request,
+/* =============================== GET TREE ================================ */
+export const getCategoriesTree = async (
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const id = String(req.params.id); // ✅ fix typescript error
-
-    await deleteProductCategoryService(id);
+    const result = await getCategoryTreeService();
 
     res.status(200).json({
       success: true,
-      message: "Category deleted successfully",
+      data: result,
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* =============================== UPDATE ================================ */
+export const updateCategory = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const id = req.params.id as string;
+    const result = await updateCategoryService(id, req.body);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* =============================== DELETE ================================ */
+export const deleteCategory = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const id = req.params.id as string;
+    await deleteCategoryService(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Deleted successfully",
+    });
+  } catch (err) {
+    next(err);
   }
 };
