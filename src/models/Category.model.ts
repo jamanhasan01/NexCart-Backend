@@ -8,6 +8,7 @@ const categorySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     slug: {
       type: String,
       required: true,
@@ -16,7 +17,25 @@ const categorySchema = new mongoose.Schema(
       index: true,
     },
 
+    /* =============================== RELATION ================================ */
+    parent: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      default: null, // null = main category
+    },
+
+    /* =============================== ORDER ================================ */
+    order: {
+      type: Number,
+      default: 0,
+    },
+
     icon: {
+      type: String,
+      default: null,
+    },
+
+    image: {
       type: String,
       default: null,
     },
@@ -26,7 +45,7 @@ const categorySchema = new mongoose.Schema(
       default: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Category =

@@ -49,6 +49,24 @@ export const getCategoryTreeService = async () => {
   return buildTree(categories);
 };
 
+// /* =============================== GET ALL ================================ */
+// export const getCategoriesService = async (query: any) => {
+//   const filter: any = {};
+
+//   if (query.parent) {
+//     filter.parent = query.parent; // ✅ filter by parent
+//   }
+
+//   if (query.isActive !== undefined) {
+//     filter.isActive = query.isActive;
+//   }
+
+//   const categories = await Category.find(filter)
+//     .sort({ order: 1 })
+//     .lean();
+
+//   return categories;
+// };
 /* =============================== UPDATE ================================ */
 export const updateCategoryService = async (id: string, payload: any) => {
   if (payload.name) {

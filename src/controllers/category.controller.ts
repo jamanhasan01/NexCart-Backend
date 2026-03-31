@@ -7,6 +7,7 @@ import {
   deleteCategoryService,
 } from "../services/category.service";
 import { AuthRequest } from "../types/auth.type";
+import Category from "../models/Category.model";
 
 /* =============================== CREATE ================================ */
 export const createCategory = async (
@@ -23,6 +24,7 @@ export const createCategory = async (
     };
 
     const result = await createCategoryService(payload);
+    console.log("upate ", result);
 
     res.status(201).json({
       success: true,
@@ -45,6 +47,34 @@ export const getCategoriesTree = async (
     res.status(200).json({
       success: true,
       data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* =============================== GET ALL / BY PARENT ================================ */
+export const getCategories = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { parent } = req.query;
+
+    const filter: any = {};
+
+    if (parent === "null") {
+      filter.parent = null; // main categories
+    } else if (parent) {
+      filter.parent = parent; // subcategories
+    }
+
+    const categories = await Category.find(filter).sort({ order: 1 }).lean();
+
+    res.status(200).json({
+      success: true,
+      data: categories,
     });
   } catch (err) {
     next(err);
