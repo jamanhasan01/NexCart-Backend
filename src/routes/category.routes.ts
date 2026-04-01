@@ -8,7 +8,7 @@ import {
   getCategories,
 } from "../controllers/category.controller";
 import { createUploader } from "../middlewares/upload.middleware";
-const { upload, optimizeImage } = createUploader("categories");
+const { upload, optimizeImage } = createUploader("category");
 
 const router = express.Router();
 

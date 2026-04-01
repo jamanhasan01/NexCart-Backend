@@ -24,7 +24,7 @@ export const createCategory = async (
     };
 
     const result = await createCategoryService(payload);
-    console.log("upate ", result);
+  
 
     res.status(201).json({
       success: true,
