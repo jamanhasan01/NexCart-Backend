@@ -87,12 +87,16 @@ export const deleteCategoryService = async (id: string) => {
   const hasChild = await Category.findOne({ parent: id });
 
   if (hasChild) {
-    throw new Error("Cannot delete category with children");
+    throw new Error(
+      "This category cannot be deleted because it has subcategories.",
+    );
   }
 
   const deleted = await Category.findByIdAndDelete(id);
 
-  if (!deleted) throw new Error("Category not found");
+  if (!deleted) {
+    throw new Error("Category not found or already deleted.");
+  }
 
   return deleted;
 };
