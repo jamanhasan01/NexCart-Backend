@@ -1,35 +1,19 @@
 import mongoose from 'mongoose'
 import { IProduct } from '../types/product.type'
 
-/* =============================== Image Sub Schema ================================ */
-const imageSchema = new mongoose.Schema(
-  {
-    publicId: {
-      type: String,
-      required: true,
-    },
-
-    url: {
-      type: String,
-      required: true,
-    },
-  },
-  { _id: false },
-)
-
 /* =============================== Product Schema ================================ */
 const productSchema = new mongoose.Schema<IProduct>(
   {
     productID: {
       type: String,
-      required: true,
+      required: [true, 'Product ID is required'],
       unique: true,
       index: true,
     },
 
     name: {
       type: String,
-      required: true,
+      required: [true, 'Product name is required'],
       trim: true,
       index: true,
     },
@@ -37,7 +21,7 @@ const productSchema = new mongoose.Schema<IProduct>(
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
-      required: true,
+      required: [true, 'Category is required'],
       index: true,
     },
 
@@ -49,21 +33,21 @@ const productSchema = new mongoose.Schema<IProduct>(
 
     price: {
       type: Number,
-      required: true,
-      min: 0,
+      required: [true, 'Price is required'],
+      min: [0, 'Price cannot be negative'],
       index: true,
     },
 
     discount: {
       type: Number,
       default: 0,
-      min: 0,
-      max: 100,
+      min: [0, 'Discount cannot be less than 0'],
+      max: [100, 'Discount cannot exceed 100%'],
     },
 
     description: {
       type: String,
-      required: true,
+      required: [true, 'Description is required'],
     },
 
     /* =============================== Images ================================ */
@@ -82,8 +66,8 @@ const productSchema = new mongoose.Schema<IProduct>(
 
     stock: {
       type: Number,
-      required: true,
-      min: 0,
+      required: [true, 'Stock quantity is required'],
+      min: [0, 'Stock cannot be negative'],
     },
 
     /* =============================== Product Flags ================================ */
@@ -118,19 +102,20 @@ const productSchema = new mongoose.Schema<IProduct>(
 
     status: {
       type: String,
-      enum: ['active', 'inactive', 'draft', 'archived'],
+      enum: {
+        values: ['active', 'inactive', 'draft', 'archived'],
+        message: 'Invalid status value',
+      },
       default: 'draft',
       index: true,
     },
   },
-
   {
     timestamps: true,
-  },
+  }
 )
 
 /* =============================== Search Index ================================ */
-
 productSchema.index({
   name: 'text',
   description: 'text',
@@ -138,7 +123,7 @@ productSchema.index({
 })
 
 /* =============================== Model ================================ */
-
-const Product = mongoose.models.Product || mongoose.model('Product', productSchema)
+const Product =
+  mongoose.models.Product || mongoose.model('Product', productSchema)
 
 export default Product

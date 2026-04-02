@@ -1,9 +1,12 @@
 /* =============================== IMPORTS ================================ */
 import Category from "../models/Category.model";
+import Product from "../models/Product.model";
 import { generateSlug } from "../utils/generateSlug";
 
 /* =============================== CREATE ================================ */
 export const createCategoryService = async (payload: any) => {
+ 
+  
   const slug = generateSlug(payload.name);
 
   const exist = await Category.findOne({ slug });
@@ -91,7 +94,14 @@ export const deleteCategoryService = async (id: string) => {
       "This category cannot be deleted because it has subcategories.",
     );
   }
+  /* =============================== CHECK PRODUCTS ================================ */
+  const hasProducts = await Product.exists({ category: id });
 
+  if (hasProducts) {
+    throw new Error(
+      "This category has products. Please move them before deleting.",
+    );
+  }
   const deleted = await Category.findByIdAndDelete(id);
 
   if (!deleted) {

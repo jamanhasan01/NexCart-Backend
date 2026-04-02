@@ -1,13 +1,13 @@
-import Product from '../models/Product.model'
-import { IProduct } from '../types/product.type'
+import Product from "../models/Product.model";
+import { IProduct } from "../types/product.type";
 
-import Category from '../models/Category.model'
-import { IProductQuery } from '../types/query.type'
+import Category from "../models/Category.model";
+import { IProductQuery } from "../types/query.type";
 
 /* =============================== product create business logic ================================ */
 export const createProductService = async (data: IProduct) => {
-  return await Product.create(data)
-}
+  return await Product.create(data);
+};
 
 /* =============================== get all products ================================ */
 
@@ -25,35 +25,35 @@ export const getAllProductsService = async ({
   isTrending,
   status,
 }: IProductQuery) => {
-  const filter: any = {}
+  const filter: any = {};
 
   /* =============================== Search ================================ */
 
   if (search) {
-    const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     filter.$or = [
-      { name: { $regex: safeSearch, $options: 'i' } },
-      { brand: { $regex: safeSearch, $options: 'i' } },
-      { productID: { $regex: safeSearch, $options: 'i' } },
-    ]
+      { name: { $regex: safeSearch, $options: "i" } },
+      { brand: { $regex: safeSearch, $options: "i" } },
+      { productID: { $regex: safeSearch, $options: "i" } },
+    ];
   }
 
   /* =============================== Status ================================ */
 
-  if (status && status !== 'all') {
-    filter.status = status
+  if (status && status !== "all") {
+    filter.status = status;
   }
 
   /* =============================== Category ================================ */
 
   if (categories) {
-    const categorySlug = Array.isArray(categories) ? categories[0] : categories
+    const categorySlug = Array.isArray(categories) ? categories[0] : categories;
 
     const category = await Category.findOne({
       slug: categorySlug,
       isActive: true,
-    }).select('_id')
+    }).select("_id");
 
     if (!category) {
       return {
@@ -64,16 +64,16 @@ export const getAllProductsService = async ({
           total_page: 0,
           total_product: 0,
         },
-      }
+      };
     }
 
-    filter.category = category._id
+    filter.category = category._id;
   }
 
   /* =============================== Product ID ================================ */
 
   if (productId) {
-    filter.productID = productId
+    filter.productID = productId;
   }
 
   /* =============================== Price ================================ */
@@ -82,36 +82,40 @@ export const getAllProductsService = async ({
     filter.price = {
       ...(minPrice && { $gte: Number(minPrice) }),
       ...(maxPrice && { $lte: Number(maxPrice) }),
-    }
+    };
   }
 
   /* =============================== Flags ================================ */
 
-  if (isFlashDeal === 'true') filter.isFlashDeal = true
-  if (isCombo === 'true') filter.isCombo = true
-  if (isTrending === 'true') filter.isTrending = true
+  if (isFlashDeal === "true") filter.isFlashDeal = true;
+  if (isCombo === "true") filter.isCombo = true;
+  if (isTrending === "true") filter.isTrending = true;
 
   /* =============================== Sorting ================================ */
 
-  let sortStage: any = { createdAt: -1 }
+  let sortStage: any = { createdAt: -1 };
 
   if (sort) {
-    const field = sort.startsWith('-') ? sort.slice(1) : sort
-    const order = sort.startsWith('-') ? -1 : 1
-    sortStage = { [field]: order }
+    const field = sort.startsWith("-") ? sort.slice(1) : sort;
+    const order = sort.startsWith("-") ? -1 : 1;
+    sortStage = { [field]: order };
   }
 
   /* =============================== Pagination ================================ */
 
-  const skip = (page - 1) * limit
+  const skip = (page - 1) * limit;
 
   /* =============================== Query ================================ */
 
   const [products, total_product] = await Promise.all([
-    Product.find(filter).populate('category').sort(sortStage).skip(skip).limit(limit),
+    Product.find(filter)
+      .populate("category")
+      .sort(sortStage)
+      .skip(skip)
+      .limit(limit),
 
     Product.countDocuments(filter),
-  ])
+  ]);
 
   /* =============================== Return ================================ */
 
@@ -123,24 +127,27 @@ export const getAllProductsService = async ({
       total_page: Math.max(1, Math.ceil(total_product / limit)),
       total_product,
     },
-  }
-}
+  };
+};
 /* =============================== get single product  business logic ================================ */
 export const getSingleProductService = async (id: string) => {
-  const product = await Product.findById(id)
+  const product = await Product.findById(id);
   if (!product) {
-    throw new Error('Product not found')
+    throw new Error("Product not found");
   }
-  return product
-}
+  return product;
+};
 /* =============================== update single product  business logic ================================ */
 /* =============================== update product business logic ================================ */
-export const updatProductService = async (id: string, payload: Partial<IProduct>) => {
+export const updatProductService = async (
+  id: string,
+  payload: Partial<IProduct>,
+) => {
   return await Product.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,
-  })
-}
+  });
+};
 
 /* =============================== get product stats service ================================ */
 
@@ -150,15 +157,15 @@ export const getProductStatsService = async () => {
       $facet: {
         /* =============================== TOTAL PRODUCTS ================================ */
 
-        totalProducts: [{ $count: 'count' }],
+        totalProducts: [{ $count: "count" }],
 
         /* =============================== ACTIVE PRODUCTS ================================ */
 
-        activeProducts: [{ $match: { status: 'active' } }, { $count: 'count' }],
+        activeProducts: [{ $match: { status: "active" } }, { $count: "count" }],
 
         /* =============================== LOW STOCK ================================ */
 
-        lowStock: [{ $match: { stock: { $lt: 10 } } }, { $count: 'count' }],
+        lowStock: [{ $match: { stock: { $lt: 10 } } }, { $count: "count" }],
 
         /* =============================== INVENTORY ================================ */
 
@@ -168,12 +175,12 @@ export const getProductStatsService = async () => {
               _id: null,
 
               totalStock: {
-                $sum: '$stock',
+                $sum: "$stock",
               },
 
               totalInventoryValue: {
                 $sum: {
-                  $multiply: ['$price', '$stock'],
+                  $multiply: ["$price", "$stock"],
                 },
               },
             },
@@ -181,14 +188,14 @@ export const getProductStatsService = async () => {
         ],
       },
     },
-  ])
+  ]);
 
-  const data = stats[0]
+  const data = stats[0];
 
   const inventory = data?.inventoryStats?.[0] || {
     totalStock: 0,
     totalInventoryValue: 0,
-  }
+  };
 
   return {
     totalProducts: data?.totalProducts?.[0]?.count || 0,
@@ -200,5 +207,5 @@ export const getProductStatsService = async () => {
     totalStock: inventory.totalStock,
 
     totalInventoryValue: inventory.totalInventoryValue,
-  }
-}
+  };
+};

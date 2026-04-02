@@ -21,7 +21,12 @@ router.post(
 );
 router.get("/categories/tree", getCategoriesTree);
 router.get("/categories", getCategories); // ✅ IMPORTANT
-router.patch("/categories/:id", updateCategory);
+router.patch(
+  "/categories/:id",
+  upload.single("image"), // ✅ ADD
+  optimizeImage, // ✅ ADD
+  updateCategory,
+);
 router.delete("/categories/:id", deleteCategory);
 
 export default router;

@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 
-
 export const errorMiddleware = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   // ✅ Custom error (from service/controller)
   if (err.statusCode) {
@@ -19,10 +18,17 @@ export const errorMiddleware = (
   if (err.name === "ValidationError") {
     const messages = Object.values(err.errors).map((e: any) => e.message);
 
-
     return res.status(400).json({
       success: false,
       message: messages[0],
+    });
+  }
+
+  /* =============================== CAST ERROR ================================ */
+  if (err.name === "CastError") {
+    return res.status(400).json({
+      success: false,
+      message: `Invalid ${err.path}`, // e.g. "Invalid category"
     });
   }
 
