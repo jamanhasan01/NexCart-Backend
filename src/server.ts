@@ -16,13 +16,9 @@ import path from "path";
 dotenv.config();
 
 const app = express();
+
 /* =============================== CORS CONFIG ================================ */
-/* =============================== CORS CONFIG ================================ */
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://zuniva-frontend.vercel.app",
-  "http://vte76kuoixqulhuazue0vscp.187.77.155.174.sslip.io",
-];
+const allowedOrigins = ["https://zunivabd.com/"];
 
 app.use(
   cors({
@@ -59,7 +55,7 @@ app.get("/", (_req, res) => {
 /* =============================== static uploads ================================ */
 
 /* =============================== static uploads ================================ */
-app.use('/uploads', express.static('/data/uploads'))
+app.use("/uploads", express.static("/data/uploads"));
 // app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 /* =============================== All Route Global middle ware ================================ */
 app.use("/api/auth", authRoutes);

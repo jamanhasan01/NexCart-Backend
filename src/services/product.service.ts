@@ -131,7 +131,7 @@ export const getAllProductsService = async ({
 };
 /* =============================== get single product  business logic ================================ */
 export const getSingleProductService = async (id: string) => {
-  const product = await Product.findById(id);
+  const product = await Product.findById(id).populate("category");
   if (!product) {
     throw new Error("Product not found");
   }
