@@ -11,14 +11,14 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/connectDB";
 import cors from "cors";
 import { errorMiddleware } from "./middlewares/error.middleware";
-import path from "path";
+
 
 dotenv.config();
 
 const app = express();
 
 /* =============================== CORS CONFIG ================================ */
-const allowedOrigins = ["https://zunivabd.com/"];
+const allowedOrigins = ["https://zunivabd.com"];
 
 app.use(
   cors({
