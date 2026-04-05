@@ -21,12 +21,13 @@ export const createOrderService = async (userId: string, payload: ICreateOrderPa
     if (product.stock < item.quantity) {
       throw new Error(`${product.name} is out of stock`)
     }
-
+    /* ================= SAFE PRICE ================= */
+    const price = product.finalPrice ?? product.price
     items.push({
       product: product._id,
       productId: product.productID,
-      name: product.name,
-      price: product.price,
+      name: price,
+      price: product.finalPrice,
       quantity: item.quantity,
       image: product.thumbnail,
     })

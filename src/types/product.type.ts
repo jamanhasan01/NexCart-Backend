@@ -12,7 +12,7 @@ export interface IProduct {
 
   price: number
   discount?: number
-
+  finalPrice: number
   stock: number
 
   images: string[]

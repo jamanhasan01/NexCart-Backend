@@ -44,7 +44,11 @@ const productSchema = new mongoose.Schema<IProduct>(
       min: [0, 'Discount cannot be less than 0'],
       max: [100, 'Discount cannot exceed 100%'],
     },
-
+    /* =============================== PRODUCT MODEL ================================ */
+    finalPrice: {
+      type: Number,
+      required: true,
+    },
     description: {
       type: String,
       required: [true, 'Description is required'],
@@ -112,7 +116,7 @@ const productSchema = new mongoose.Schema<IProduct>(
   },
   {
     timestamps: true,
-  }
+  },
 )
 
 /* =============================== Search Index ================================ */
@@ -123,7 +127,6 @@ productSchema.index({
 })
 
 /* =============================== Model ================================ */
-const Product =
-  mongoose.models.Product || mongoose.model('Product', productSchema)
+const Product = mongoose.models.Product || mongoose.model('Product', productSchema)
 
 export default Product

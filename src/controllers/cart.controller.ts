@@ -49,11 +49,12 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
       if (quantity > product.stock) {
         return res.status(400).json({ message: 'Not enough stock available' })
       }
-
+  /* ================= SAFE PRICE ================= */
+    const price = product.finalPrice ?? product.price
       cart.items.push({
         product: product._id,
         quantity,
-        price: product.price,
+        price: price,
       })
     }
 
