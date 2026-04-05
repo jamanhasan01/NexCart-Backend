@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 
 /* =============================== CORS CONFIG ================================ */
-const allowedOrigins = ["https://zunivabd.com"];
+const allowedOrigins = ["https://zunivabd.com","http://localhost:3000"];
 
 app.use(
   cors({

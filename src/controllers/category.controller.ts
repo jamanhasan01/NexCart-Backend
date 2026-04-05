@@ -1,10 +1,11 @@
-/* =============================== IMPORTS ================================ */
+﻿/* =============================== IMPORTS ================================ */
 import { Response, NextFunction } from "express";
 import {
   createCategoryService,
   getCategoryTreeService,
   updateCategoryService,
   deleteCategoryService,
+  getCategoriesService,
 } from "../services/category.service";
 import { AuthRequest } from "../types/auth.type";
 import Category from "../models/Category.model";
@@ -25,7 +26,6 @@ const deleteFile = (filePath: string) => {
 
     if (fs.existsSync(fullPath)) {
       fs.unlinkSync(fullPath);
-     
     }
   } catch (error) {
     console.error("File delete error:", error);
@@ -82,21 +82,12 @@ export const getCategories = async (
   next: NextFunction,
 ) => {
   try {
-    const { parent } = req.query;
-
-    const filter: any = {};
-
-    if (parent === "null") {
-      filter.parent = null;
-    } else if (parent) {
-      filter.parent = parent;
-    }
-
-    const categories = await Category.find(filter).sort({ order: 1 }).lean();
+    const result = await getCategoriesService(req.query);
 
     res.status(200).json({
       success: true,
-      data: categories,
+      data: result.data,
+      meta: result.meta,
     });
   } catch (err) {
     next(err);

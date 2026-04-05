@@ -12,7 +12,6 @@ export interface IProductQuery {
   isCombo?: string
   isFlashDeal?: string
   isTrending?: string
-  isDeleted?: boolean
 }
 
 export interface IOrderQuery {
