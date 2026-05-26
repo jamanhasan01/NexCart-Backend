@@ -1,27 +1,27 @@
-import mongoose from 'mongoose'
-import { IProduct } from '../types/product.type'
+import mongoose from "mongoose";
+import { IProduct } from "../types/product.type";
 
 /* =============================== Product Schema ================================ */
 const productSchema = new mongoose.Schema<IProduct>(
   {
     productID: {
       type: String,
-      required: [true, 'Product ID is required'],
+      required: [true, "Product ID is required"],
       unique: true,
       index: true,
     },
 
     name: {
       type: String,
-      required: [true, 'Product name is required'],
+      required: [true, "Product name is required"],
       trim: true,
       index: true,
     },
 
     category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
-      required: [true, 'Category is required'],
+      ref: "Category",
+      required: [true, "Category is required"],
       index: true,
     },
 
@@ -33,16 +33,16 @@ const productSchema = new mongoose.Schema<IProduct>(
 
     price: {
       type: Number,
-      required: [true, 'Price is required'],
-      min: [0, 'Price cannot be negative'],
+      required: [true, "Price is required"],
+      min: [0, "Price cannot be negative"],
       index: true,
     },
 
     discount: {
       type: Number,
       default: 0,
-      min: [0, 'Discount cannot be less than 0'],
-      max: [100, 'Discount cannot exceed 100%'],
+      min: [0, "Discount cannot be less than 0"],
+      max: [100, "Discount cannot exceed 100%"],
     },
     /* =============================== PRODUCT MODEL ================================ */
     finalPrice: {
@@ -51,27 +51,42 @@ const productSchema = new mongoose.Schema<IProduct>(
     },
     description: {
       type: String,
-      required: [true, 'Description is required'],
+      required: [true, "Description is required"],
     },
 
     /* =============================== Images ================================ */
 
-    images: {
-      type: [String],
-      default: [],
-    },
+    images: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+
+        publicId: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
 
     thumbnail: {
-      type: String,
-      default: '',
-    },
+      url: {
+        type: String,
+        default: "",
+      },
 
+      publicId: {
+        type: String,
+        default: "",
+      },
+    },
     /* =============================== Inventory ================================ */
 
     stock: {
       type: Number,
-      required: [true, 'Stock quantity is required'],
-      min: [0, 'Stock cannot be negative'],
+      required: [true, "Stock quantity is required"],
+      min: [0, "Stock cannot be negative"],
     },
 
     /* =============================== Product Flags ================================ */
@@ -107,26 +122,27 @@ const productSchema = new mongoose.Schema<IProduct>(
     status: {
       type: String,
       enum: {
-        values: ['active', 'inactive', 'draft', 'archived'],
-        message: 'Invalid status value',
+        values: ["active", "inactive", "draft", "archived"],
+        message: "Invalid status value",
       },
-      default: 'draft',
+      default: "draft",
       index: true,
     },
   },
   {
     timestamps: true,
   },
-)
+);
 
 /* =============================== Search Index ================================ */
 productSchema.index({
-  name: 'text',
-  description: 'text',
-  brand: 'text',
-})
+  name: "text",
+  description: "text",
+  brand: "text",
+});
 
 /* =============================== Model ================================ */
-const Product = mongoose.models.Product || mongoose.model('Product', productSchema)
+const Product =
+  mongoose.models.Product || mongoose.model("Product", productSchema);
 
-export default Product
+export default Product;

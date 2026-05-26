@@ -7,8 +7,8 @@ import {
   deleteCategory,
   getCategories,
 } from "../controllers/category.controller";
-import { createUploader } from "../middlewares/upload.middleware";
-const { upload, optimizeImage } = createUploader("category");
+import upload  from "../middlewares/multer.middleware";
+
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ const router = express.Router();
 router.post(
   "/categories",
   upload.single("image"),
-  optimizeImage,
+
   createCategory,
 );
 router.get("/categories/tree", getCategoriesTree);
@@ -24,7 +24,7 @@ router.get("/categories", getCategories); // ✅ IMPORTANT
 router.patch(
   "/categories/:id",
   upload.single("image"), // ✅ ADD
-  optimizeImage, // ✅ ADD
+
   updateCategory,
 );
 router.delete("/categories/:id", deleteCategory);
