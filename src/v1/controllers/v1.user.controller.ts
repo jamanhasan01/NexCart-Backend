@@ -1,14 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import {
-  getAllUserService,
-  getSingleUserService,
-} from "../services/user.service";
-import User from "../models/User.model";
-import { AuthRequest } from "../types/auth.type";
-/* =============================== Update Profile Controller ================================ */
+import { getAllUserService, getSingleUserService } from "../../services/user.service";
+import User from "../../models/User.model";
+import cloudinary from "../../utils/cloudinary";
 
-import cloudinary from "../utils/cloudinary";
-import { uploadSingleImage } from "../middlewares/image.upload";
 
 /* =============================== Get All Users Controller ================================ */
 export const getAllUser = async (req: Request, res: Response) => {

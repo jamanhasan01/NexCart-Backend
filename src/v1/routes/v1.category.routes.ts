@@ -6,8 +6,9 @@ import {
   updateCategory,
   deleteCategory,
   getCategories,
-} from "../controllers/category.controller";
-import upload  from "../middlewares/multer.middleware";
+} from "../controllers/v1.category.controller";
+import upload from "../../middlewares/multer.middleware";
+
 
 
 const router = express.Router();

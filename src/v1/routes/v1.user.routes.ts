@@ -5,9 +5,10 @@ import {
   getSingleUser,
   toggleAdminRole,
   toggleBlockUser,
-} from '../controllers/user.controller'
+} from '../controllers/v1.user.controller'
+import { authorizeRoles, verifyToken } from '../../middlewares/auth.middleware'
 
-import { authorizeRoles, verifyToken } from '../middlewares/auth.middleware'
+
 
 const router = Router()
 

@@ -1,6 +1,5 @@
-import bcrypt from 'bcrypt'
-
-import User from '../models/User.model'
+import bcrypt from "bcrypt";
+import User from "../models/User.model";
 
 /* =============================== register User Service ================================ */
 
@@ -33,14 +32,14 @@ export const registerUserService = async (
 
 /* =============================== Login User Service ================================ */
 export const loginUserService = async (email: string, password: string) => {
-  const userExists = await User.findOne({ email }).select('+password')
+  const userExists = await User.findOne({ email }).select("+password");
   if (!userExists) {
-    throw new Error('User not found')
+    throw new Error("User not found");
   }
-  const isMatch = await bcrypt.compare(password, userExists.password)
+  const isMatch = await bcrypt.compare(password, userExists.password);
 
   return {
     isMatch,
     userExists,
-  }
-}
+  };
+};

@@ -1,9 +1,9 @@
 /* =============================== controllers/cart.controller.js ================================ */
 
 import { NextFunction, Response } from "express";
-import Product from "../models/Product.model";
-import { AuthRequest } from "../types/auth.type";
-import Cart from "../models/Cart.model";
+import { AuthRequest } from "../../types/auth.type";
+import Product from "../../models/Product.model";
+import Cart from "../../models/Cart.model";
 
 export const addToCart = async (
   req: AuthRequest,

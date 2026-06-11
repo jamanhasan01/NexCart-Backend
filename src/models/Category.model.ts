@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
+import { ICategory } from "../types/category.type";
 
 /* =============================== Category Schema ================================ */
-const categorySchema = new mongoose.Schema(
+const categorySchema = new mongoose.Schema<ICategory>(
   {
     name: {
       type: String,
@@ -21,7 +22,7 @@ const categorySchema = new mongoose.Schema(
     parent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-      default: null, // null = main category
+      default: null, 
     },
 
     /* =============================== ORDER ================================ */
@@ -29,14 +30,11 @@ const categorySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-
-    icon: {
-      type: String,
-      default: null,
-    },
-
     image: {
-      type: String,
+      type: {
+        url: String,
+        publicId: String,
+      },
       default: null,
     },
 

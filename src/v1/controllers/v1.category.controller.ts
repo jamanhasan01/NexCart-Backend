@@ -1,45 +1,27 @@
 ﻿/* =============================== IMPORTS ================================ */
+
 import { Response, NextFunction } from "express";
-import {
-  createCategoryService,
-  getCategoryTreeService,
-  updateCategoryService,
-  deleteCategoryService,
-  getCategoriesService,
-} from "../services/category.service";
-import { AuthRequest } from "../types/auth.type";
-import Category from "../models/Category.model";
-import fs from "fs";
-import path from "path";
-import Product from "../models/Product.model";
+import { AuthRequest } from "../../types/auth.type";
+import { uploadImage } from "../../middlewares/image.upload";
+import { createCategoryService, deleteCategoryService, getCategoriesService, getCategoryTreeService, updateCategoryService } from "../../services/category.service";
+import Category from "../../models/Category.model";
+import cloudinary from "../../utils/cloudinary";
+import Product from "../../models/Product.model";
 
-/* =============================== DELETE FILE ================================ */
-const deleteFile = (filePath: string) => {
-  try {
-    if (!filePath) return;
-
-    // prevent deleting external files
-    if (filePath.startsWith("http")) return;
-
-    const cleanPath = filePath.replace(/^\/+/, "");
-    const fullPath = path.join("/data", cleanPath);
-
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-    }
-  } catch (error) {
-    console.error("File delete error:", error);
-  }
-};
 
 /* =============================== CREATE ================================ */
+
 export const createCategory = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const image = req.file ? `/uploads/category/${req.file.filename}` : null;
+    let image = null;
+
+    if (req.file) {
+      image = await uploadImage(req.file, "nexcart/categories", 800, 80);
+    }
 
     const payload = {
       ...req.body,
@@ -48,8 +30,9 @@ export const createCategory = async (
 
     const result = await createCategoryService(payload);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
+      message: "Category created successfully",
       data: result,
     });
   } catch (err) {
@@ -58,6 +41,7 @@ export const createCategory = async (
 };
 
 /* =============================== GET TREE ================================ */
+
 export const getCategoriesTree = async (
   req: AuthRequest,
   res: Response,
@@ -66,7 +50,7 @@ export const getCategoriesTree = async (
   try {
     const result = await getCategoryTreeService();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: result,
     });
@@ -76,6 +60,7 @@ export const getCategoriesTree = async (
 };
 
 /* =============================== GET ALL ================================ */
+
 export const getCategories = async (
   req: AuthRequest,
   res: Response,
@@ -84,7 +69,7 @@ export const getCategories = async (
   try {
     const result = await getCategoriesService(req.query);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: result.data,
       meta: result.meta,
@@ -95,6 +80,7 @@ export const getCategories = async (
 };
 
 /* =============================== UPDATE ================================ */
+
 export const updateCategory = async (
   req: AuthRequest,
   res: Response,
@@ -104,10 +90,14 @@ export const updateCategory = async (
     const id = req.params.id as string;
 
     /* =============================== FIND EXISTING ================================ */
+
     const existing = await Category.findById(id);
 
     if (!existing) {
-      throw new Error("Category not found");
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
     }
 
     const payload: any = {
@@ -115,28 +105,37 @@ export const updateCategory = async (
     };
 
     /* =============================== REMOVE IMAGE ================================ */
+
     if (req.body.removeImage === "true") {
-      if (existing.image) {
-        deleteFile(existing.image);
+      if (existing.image?.publicId) {
+        await cloudinary.uploader.destroy(existing.image.publicId);
       }
+
       payload.image = null;
     }
 
     /* =============================== UPDATE IMAGE ================================ */
+
     if (req.file) {
-      // delete old image
-      if (existing.image) {
-        deleteFile(existing.image);
+      if (existing.image?.publicId) {
+        await cloudinary.uploader.destroy(existing.image.publicId);
       }
 
-      // set new image
-      payload.image = `/uploads/category/${req.file.filename}`;
+      payload.image = await uploadImage(
+        req.file,
+        "nexcart/categories",
+        800,
+        80,
+      );
     }
+
+    /* =============================== UPDATE CATEGORY ================================ */
 
     const result = await updateCategoryService(id, payload);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
+      message: "Category updated successfully",
       data: result,
     });
   } catch (err) {
@@ -145,6 +144,7 @@ export const updateCategory = async (
 };
 
 /* =============================== DELETE ================================ */
+
 export const deleteCategory = async (
   req: AuthRequest,
   res: Response,
@@ -154,29 +154,43 @@ export const deleteCategory = async (
     const id = req.params.id as string;
 
     /* =============================== FIND EXISTING ================================ */
+
     const existing = await Category.findById(id);
+
     if (!existing) {
-      throw new Error("Category not found");
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
     }
+
     /* =============================== CHECK PRODUCTS ================================ */
-    const hasProducts = await Product.exists({ category: id });
+
+    const hasProducts = await Product.exists({
+      category: id,
+    });
 
     if (hasProducts) {
-      throw new Error(
-        "Cannot delete category. Products are assigned to this category.",
-      );
+      return res.status(400).json({
+        success: false,
+        message:
+          "Cannot delete category. Products are assigned to this category.",
+      });
     }
 
     /* =============================== DELETE IMAGE ================================ */
-    if (existing.image) {
-      deleteFile(existing.image);
+
+    if (existing.image?.publicId) {
+      await cloudinary.uploader.destroy(existing.image.publicId);
     }
+
+    /* =============================== DELETE CATEGORY ================================ */
 
     await deleteCategoryService(id);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Deleted successfully",
+      message: "Category deleted successfully",
     });
   } catch (err) {
     next(err);

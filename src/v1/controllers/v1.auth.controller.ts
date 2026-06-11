@@ -1,14 +1,11 @@
 import { NextFunction, Request, Response } from "express";
-import {
-  loginUserService,
-  registerUserService,
-} from "../services/auth.service";
-import { generateToken } from "../utils/jwt";
+import { loginUserService, registerUserService } from "../../services/auth.service";
+import User from "../../models/User.model";
+import { generateToken } from "../../utils/jwt";
+import { AuthRequest } from "../../types/auth.type";
+import cloudinary from "../../utils/cloudinary";
+import { uploadSingleImage } from "../../middlewares/image.upload";
 
-import User from "../models/User.model";
-import { AuthRequest } from "../types/auth.type";
-import cloudinary from "../utils/cloudinary";
-import { uploadSingleImage } from "../middlewares/image.upload";
 
 /* =============================== resgister controller ================================ */
 export const register = async (

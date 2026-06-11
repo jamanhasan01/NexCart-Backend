@@ -7,8 +7,9 @@ import {
   getUserOrders,
   updateOrderStatus,
   updatePaymentStatus,
-} from '../controllers/order.controller'
-import { authorizeRoles, verifyToken } from '../middlewares/auth.middleware'
+} from '../controllers/v1.order.controller'
+import { authorizeRoles, verifyToken } from '../../middlewares/auth.middleware'
+
 
 const router = Router()
 router.post('/order', verifyToken, createOrder)

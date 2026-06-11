@@ -1,11 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
-import authRoutes from "./routes/auth.routes";
-import userRoute from "./routes/user.routes";
-import productRoute from "./routes/product.routes";
-import categoryRoute from "./routes/category.routes";
-import orderRoute from "./routes/order.route";
-import cartRoute from "./routes/cart.route";
+import authV1Route from "./v1/routes/v1.auth.routes";
+import userV1Route from "./v1/routes/v1.user.routes";
+import productV1Route from "./v1/routes/v1.product.routes";
+import categoryV1Route from "./v1/routes/v1.category.routes";
+import orderV1Route from "./v1/routes/v1.order.route";
+import cartV1Route from "./v1/routes/v1.cart.route";
 import cookieParser from "cookie-parser";
 
 import connectDB from "./config/connectDB";
@@ -58,12 +58,12 @@ app.get("/", (_req, res) => {
 app.use("/uploads", express.static("/data/uploads"));
 // app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 /* =============================== All Route Global middle ware ================================ */
-app.use("/api/auth", authRoutes);
-app.use("/api", userRoute);
-app.use("/api", productRoute);
-app.use("/api", categoryRoute);
-app.use("/api", cartRoute);
-app.use("/api", orderRoute);
+app.use("/api/v1/auth", authV1Route);
+app.use("/api/v1", userV1Route);
+app.use("/api/v1", productV1Route);
+app.use("/api/v1", categoryV1Route);
+app.use("/api/v1", cartV1Route);
+app.use("/api/v1", orderV1Route);
 
 /* =============================== Global error middleware ================================ */
 app.use(errorMiddleware);

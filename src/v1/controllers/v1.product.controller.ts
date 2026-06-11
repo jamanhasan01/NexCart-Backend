@@ -1,19 +1,16 @@
 import { NextFunction, Request, Response } from "express";
 import { nanoid } from "nanoid";
+import { uploadMultipleImages } from "../../middlewares/image.upload";
+import { parseTags } from "../../utils/parsedTags";
 import {
   createProductService,
   getAllProductsService,
   getProductStatsService,
   getSingleProductService,
   updatProductService,
-} from "../services/product.service";
-
-import Product from "../models/Product.model";
-
-import cloudinary from "../utils/cloudinary";
-
-import { uploadMultipleImages } from "../middlewares/image.upload";
-import { parseTags } from "../utils/parsedTags";
+} from "../../services/product.service";
+import cloudinary from "../../utils/cloudinary";
+import Product from "../../models/Product.model";
 
 /* =============================== CREATE PRODUCT ================================ */
 export const createProduct = async (
@@ -139,7 +136,7 @@ export const getAllProduct = async (
       isCombo,
       isFlashDeal,
       isTrending,
-      isAdmin
+      isAdmin,
     });
 
     if (page > result.pagination.total_page) {
