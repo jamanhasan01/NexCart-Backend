@@ -12,10 +12,10 @@ import {
 
 import Product from "../models/Product.model";
 import { deleteFile } from "../utils/deleteFile";
-import { multipleImageUpload } from "../middlewares/image.upload";
-import cloudinary from "../utils/cloudinary";
 
-/* =============================== CREATE PRODUCT ================================ */
+import cloudinary from "../utils/cloudinary";
+import { ALL } from "dns";
+import { uploadMultipleImages } from "../middlewares/image.upload";
 
 /* =============================== CREATE PRODUCT ================================ */
 export const createProduct = async (
@@ -53,7 +53,7 @@ export const createProduct = async (
     }
 
     if (images?.length) {
-      uploadedImages = await multipleImageUpload(images);
+      uploadedImages = await uploadMultipleImages(images, "nexcart/products");
     }
 
     const productID = `PRD-${nanoid(8).toUpperCase()}`;
@@ -64,7 +64,6 @@ export const createProduct = async (
     /* =============================== FINAL PRICE ================================ */
     const rawFinalPrice = numericPrice - (numericPrice * numericDiscount) / 100;
     const finalPrice = Math.round(rawFinalPrice * 100) / 100;
-
     const product = await createProductService({
       productID,
       name,
@@ -186,23 +185,16 @@ export const deleteProduct = async (
         message: "product not found",
       });
     }
+    /* =============================== DELETE IMAGES ================================ */
+    if (product?.images.length) {
+      await Promise.all(
+        product?.images.map((image: any) => {
+          return cloudinary.uploader.destroy(image.publicId);
+        }),
+      );
+    }
+
     await Product.findByIdAndDelete(id);
-    /* =============================== DELETE IMAGES ================================ */
-
-    if (product.images && product.images.length > 0) {
-      product.images.forEach((imagePath: string) => {
-        const fullPath = path.join(process.cwd(), imagePath);
-
-        if (fs.existsSync(fullPath)) {
-          fs.unlinkSync(fullPath);
-        }
-      });
-    }
-
-    /* =============================== DELETE IMAGES ================================ */
-    if (product.images?.length) {
-      product.images.forEach(deleteFile); // ✅ FIXED
-    }
 
     return res.status(200).json({
       success: true,

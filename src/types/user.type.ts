@@ -3,7 +3,6 @@ import { Document } from "mongoose";
    Image Type
 ================================ */
 
-
 /* ===============================
     TypeScript Interface
 ================================ */
@@ -11,7 +10,10 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  avatar?: string;
+  avatar: {
+    url: string;
+    publicId: string;
+  };
   role: "customer" | "admin" | "super_admin";
   phone: string;
   isBlocked: boolean;

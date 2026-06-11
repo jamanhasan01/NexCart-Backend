@@ -34,6 +34,7 @@ export const getAllProductsService = async ({
   isFlashDeal,
   isTrending,
   status,
+  select,
 }: IProductQuery) => {
   const filter: any = {};
 
@@ -119,6 +120,7 @@ export const getAllProductsService = async ({
 
   const [products, total_product] = await Promise.all([
     Product.find(filter)
+      .select(select as string)
       .populate("category")
       .sort(sortStage)
       .skip(skip)

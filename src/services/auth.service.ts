@@ -2,23 +2,34 @@ import bcrypt from 'bcrypt'
 
 import User from '../models/User.model'
 
-/* =============================== resgister User Service ================================ */
+/* =============================== register User Service ================================ */
+
 export const registerUserService = async (
   name: string,
   email: string,
   password: string,
   phone: string,
-  avatar?: string,
+  avatar?: {
+    url: string;
+    publicId: string;
+  },
 ) => {
-  const userExists = await User.findOne({ email })
+  const userExists = await User.findOne({ email });
+
   if (userExists) {
-    throw new Error('A user with this email already exists.')
+    throw new Error("A user with this email already exists.");
   }
 
-  const newUser = await User.create({ name, email, password, avatar, phone })
+  const newUser = await User.create({
+    name,
+    email,
+    password,
+    phone,
+    avatar,
+  });
 
-  return newUser
-}
+  return newUser;
+};
 
 /* =============================== Login User Service ================================ */
 export const loginUserService = async (email: string, password: string) => {

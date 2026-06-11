@@ -1,17 +1,17 @@
-import { Router } from 'express'
-import { getMe, loginUser, logoutUser, registerUser } from '../controllers/auth.controller'
+import { Router } from "express";
 
-import { verifyToken } from '../middlewares/auth.middleware'
-import { updateProfile } from '../controllers/user.controller'
-import upload from '../middlewares/multer.middleware'
+import { verifyToken } from "../middlewares/auth.middleware";
+import { updateProfile } from "../controllers/user.controller";
+import upload from "../middlewares/multer.middleware";
+import { login, logout, me, register } from "../controllers/auth.controller";
 
-const router = Router()
+const router = Router();
 
-router.post('/register', upload.none(), registerUser)
+router.post("/register", upload.none(), register);
 
-router.post('/login', loginUser)
-router.post('/logout', logoutUser)
-router.get('/me', verifyToken, getMe)
-router.patch('/me', verifyToken, upload.single('file'), updateProfile)
+router.post("/login", login);
+router.post("/logout", logout);
+router.get("/me", verifyToken, me);
+router.patch("/me", verifyToken, upload.single("avatar"), updateProfile);
 
-export default router
+export default router;

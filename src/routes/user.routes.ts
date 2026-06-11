@@ -21,12 +21,12 @@ router.get('/users/:id', verifyToken, authorizeRoles('admin', 'super_admin'), ge
 
 /* =============================== Delete User ================================ */
 
-router.delete('/users/delete/:id', verifyToken, authorizeRoles('super_admin'), deleteUser)
+router.delete('/users/:id', verifyToken, authorizeRoles('super_admin'), deleteUser)
 
 /* =============================== Block / Unblock User ================================ */
 
 router.patch(
-  '/users/block/:id',
+  '/users/:id/block',
   verifyToken,
   authorizeRoles('admin', 'super_admin'),
   toggleBlockUser,
@@ -34,6 +34,6 @@ router.patch(
 
 /* =============================== Make / Remove Admin ================================ */
 
-router.patch('/users/admin/:id', verifyToken, authorizeRoles('super_admin'), toggleAdminRole)
+router.patch('/users/:id/role', verifyToken, authorizeRoles('super_admin'), toggleAdminRole)
 
 export default router
