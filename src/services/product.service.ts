@@ -12,6 +12,7 @@ export const createProductService = async (data: IProduct) => {
 /* =============================== get all products ================================ */
 
 export const getAllProductsService = async ({
+  isAdmin,
   page = 1,
   limit = 10,
   search,
@@ -41,7 +42,9 @@ export const getAllProductsService = async ({
   }
 
   /* =============================== Status ================================ */
-
+  if (!isAdmin) {
+    filter.status = "active";
+  }
   if (status && status !== "all") {
     filter.status = status;
   }

@@ -118,6 +118,7 @@ export const getAllProduct = async (
     const isCombo = (query.isCombo as string) || "";
     const isFlashDeal = (query.isFlashDeal as string) || "";
     const isTrending = (query.isTrending as string) || "";
+    const isAdmin = (query.isAdmin as string) || "";
 
     const select = query.select
       ? (query.select as string).split(",").join(" ")
@@ -138,6 +139,7 @@ export const getAllProduct = async (
       isCombo,
       isFlashDeal,
       isTrending,
+      isAdmin
     });
 
     if (page > result.pagination.total_page) {
