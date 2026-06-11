@@ -6,17 +6,7 @@ import { IProductQuery } from "../types/query.type";
 
 /* =============================== product create business logic ================================ */
 export const createProductService = async (data: IProduct) => {
-  let parsedTags: string[] = [];
-
-  if (typeof data.tags === "string") {
-    parsedTags = data.tags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-  }
-  console.log(parsedTags);
-
-  return await Product.create({ ...data, tags: parsedTags });
+  return await Product.create(data);
 };
 
 /* =============================== get all products ================================ */

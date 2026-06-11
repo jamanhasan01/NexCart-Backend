@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import { NextFunction, Request, Response } from "express";
 import { nanoid } from "nanoid";
 import {
@@ -11,11 +9,11 @@ import {
 } from "../services/product.service";
 
 import Product from "../models/Product.model";
-import { deleteFile } from "../utils/deleteFile";
 
 import cloudinary from "../utils/cloudinary";
-import { ALL } from "dns";
+
 import { uploadMultipleImages } from "../middlewares/image.upload";
+import { parseTags } from "../utils/parsedTags";
 
 /* =============================== CREATE PRODUCT ================================ */
 export const createProduct = async (
@@ -56,6 +54,8 @@ export const createProduct = async (
       uploadedImages = await uploadMultipleImages(images, "nexcart/products");
     }
 
+    const convertTags = parseTags(tags);
+
     const productID = `PRD-${nanoid(8).toUpperCase()}`;
     // Ensure inputs are valid numbers
     const numericPrice = Number(price);
@@ -77,7 +77,7 @@ export const createProduct = async (
       isTrending,
       isFlashDeal,
       isCombo,
-      tags,
+      tags: convertTags,
       images: uploadedImages,
       thumbnail: uploadedImages[0] || "",
       status,
@@ -239,13 +239,9 @@ export const updateProduct = async (
       status,
     } = req.body;
 
-    /* =============================== TAG ================================ */
-    let parsedTags: string[] | undefined;
-    if (tags) {
-      parsedTags = Array.isArray(tags) ? tags : [tags];
-    }
+    const convertTags = parseTags(tags);
 
-    const uploadedImages = req.body.images || [];
+    const images = req.files as Express.Multer.File[];
 
     /* =============================== SAFE VALUES ================================ */
     const newPrice = price !== undefined ? Number(price) : existing.price;
@@ -271,23 +267,36 @@ export const updateProduct = async (
       ...(isFlashDeal !== undefined && { isFlashDeal }),
       ...(isCombo !== undefined && { isCombo }),
 
-      ...(parsedTags && { tags: parsedTags }),
+      ...(convertTags && { tags: convertTags }),
       ...(status !== undefined && { status }),
 
       finalPrice, // ✅ ALWAYS UPDATE
     };
 
     /* =============================== IMAGE UPDATE ================================ */
-    if (uploadedImages.length > 0) {
+    if (images?.length > 0) {
+      /* delete old cloudinary images */
+
       if (existing.images?.length) {
-        existing.images.forEach(deleteFile);
+        await Promise.all(
+          existing.images.map((image: any) =>
+            cloudinary.uploader.destroy(image.publicId),
+          ),
+        );
       }
+
+      /* upload new images */
+
+      const uploadedImages = await uploadMultipleImages(
+        images,
+        "nexcart/products",
+      );
 
       updatePayload.images = uploadedImages;
       updatePayload.thumbnail = uploadedImages[0];
     }
 
-    /* =============================== UPDATE ================================ */
+    /* =============================== UPDATE PRODUCT ================================ */
     const product = await updatProductService(id, updatePayload);
 
     res.status(200).json({

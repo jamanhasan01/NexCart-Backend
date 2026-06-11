@@ -21,7 +21,7 @@ router.get('/users/:id', verifyToken, authorizeRoles('admin', 'super_admin'), ge
 
 /* =============================== Delete User ================================ */
 
-router.delete('/users/:id', verifyToken, authorizeRoles('super_admin'), deleteUser)
+router.delete('/users/:id', verifyToken, authorizeRoles('admin','super_admin'), deleteUser)
 
 /* =============================== Block / Unblock User ================================ */
 

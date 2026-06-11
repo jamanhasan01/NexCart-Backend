@@ -1,37 +1,11 @@
 import sharp from "sharp";
 import cloudinary from "../utils/cloudinary";
 
-/* =============================== Upload Multiple Images ================================ */
 
-export const uploadMultipleImages = async (
-  files: Express.Multer.File[],
-  folder: string,
-) => {
-  const uploadedImages: {
-    url: string;
-    publicId: string;
-  }[] = [];
 
-  try {
-    for (const file of files) {
-      const uploaded = await uploadImage(file, folder);
+/* =============================== Upload Single Image ================================ */
 
-      uploadedImages.push(uploaded);
-    }
-
-    return uploadedImages;
-  } catch (error) {
-    await Promise.all(
-      uploadedImages.map((img) => cloudinary.uploader.destroy(img.publicId)),
-    );
-
-    throw error;
-  }
-};
-
-/* =============================== Upload Image To Cloudinary ================================ */
-
- export const uploadImage = async (
+export const uploadImage = async (
   file: Express.Multer.File,
   folder: string,
   width = 1200,
@@ -59,8 +33,33 @@ export const uploadMultipleImages = async (
   };
 };
 
+/* =============================== Upload Multiple Images ================================ */
 
+export const uploadMultipleImages = async (
+  files: Express.Multer.File[],
+  folder: string,
+) => {
+  const uploadedImages: {
+    url: string;
+    publicId: string;
+  }[] = [];
 
+  try {
+    for (const file of files) {
+      const uploaded = await uploadImage(file, folder);
+
+      uploadedImages.push(uploaded);
+    }
+
+    return uploadedImages;
+  } catch (error) {
+    await Promise.all(
+      uploadedImages.map((img) => cloudinary.uploader.destroy(img.publicId)),
+    );
+
+    throw error;
+  }
+};
 
 export const uploadSingleImage = async (
   file: Express.Multer.File,

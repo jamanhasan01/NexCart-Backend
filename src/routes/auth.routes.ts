@@ -1,9 +1,9 @@
 import { Router } from "express";
 
 import { verifyToken } from "../middlewares/auth.middleware";
-import { updateProfile } from "../controllers/user.controller";
+
 import upload from "../middlewares/multer.middleware";
-import { login, logout, me, register } from "../controllers/auth.controller";
+import { login, logout, me, register, updateProfile } from "../controllers/auth.controller";
 
 const router = Router();
 

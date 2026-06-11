@@ -7,6 +7,8 @@ import { generateToken } from "../utils/jwt";
 
 import User from "../models/User.model";
 import { AuthRequest } from "../types/auth.type";
+import cloudinary from "../utils/cloudinary";
+import { uploadSingleImage } from "../middlewares/image.upload";
 
 /* =============================== resgister controller ================================ */
 export const register = async (
@@ -143,4 +145,68 @@ export const logout = (req: Request, res: Response) => {
     success: true,
     message: "Logged out successfully",
   });
+};
+
+
+
+/* =============================== update profile ================================ */
+export const updateProfile = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user?.userId;
+    const image = req.file;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const { name, phone } = req.body;
+
+    let avatar = user.avatar;
+
+    if (image) {
+      if (user.avatar?.publicId) {
+        await cloudinary.uploader.destroy(user.avatar.publicId);
+      }
+
+      avatar = await uploadSingleImage(image, "nexcart/users");
+    }
+
+    /* =============================== UPDATE USER ================================ */
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        ...(name && { name }),
+        ...(phone && { phone }),
+        avatar,
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
