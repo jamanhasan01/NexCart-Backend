@@ -52,7 +52,7 @@ export const createProduct = async (
     const isExist = await Category.exists({
       _id: category,
     });
-    console.log({ isExist });
+    
 
     if (!isExist) {
       throw new AppError("Category not found", 404);
