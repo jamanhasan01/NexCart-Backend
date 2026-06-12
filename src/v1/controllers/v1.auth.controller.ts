@@ -1,11 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { loginUserService, registerUserService } from "../../services/auth.service";
+import {
+  loginUserService,
+  registerUserService,
+} from "../../services/auth.service";
 import User from "../../models/User.model";
 import { generateToken } from "../../utils/jwt";
 import { AuthRequest } from "../../types/auth.type";
 import cloudinary from "../../utils/cloudinary";
 import { uploadSingleImage } from "../../middlewares/image.upload";
-
+import { AppError } from "../../utils/AppError";
 
 /* =============================== resgister controller ================================ */
 export const register = async (
@@ -144,47 +147,42 @@ export const logout = (req: Request, res: Response) => {
   });
 };
 
-
-
 /* =============================== update profile ================================ */
 export const updateProfile = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) => {
+  let newAvatar = null;
+
   try {
     const userId = req.user?.userId;
-    const image = req.file;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
+      throw new AppError("Unauthorized", 401);
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      throw new AppError("User not found", 404);
     }
 
     const { name, phone } = req.body;
 
     let avatar = user.avatar;
+    const oldPublicId = user.avatar?.publicId;
 
-    if (image) {
-      if (user.avatar?.publicId) {
-        await cloudinary.uploader.destroy(user.avatar.publicId);
-      }
+    /* =============================== UPLOAD NEW AVATAR ================================ */
 
-      avatar = await uploadSingleImage(image, "nexcart/users");
+    if (req.file) {
+      newAvatar = await uploadSingleImage(req.file, "nexcart/users");
+
+      avatar = newAvatar;
     }
 
     /* =============================== UPDATE USER ================================ */
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
@@ -198,12 +196,32 @@ export const updateProfile = async (
       },
     );
 
+    /* =============================== DELETE OLD AVATAR ================================ */
+
+    if (req.file && oldPublicId) {
+      try {
+        await cloudinary.uploader.destroy(oldPublicId);
+      } catch (error) {
+        console.error("Failed to delete old avatar:", error);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       message: "Profile updated successfully",
       data: updatedUser,
     });
   } catch (error) {
+    /* =============================== CLEANUP NEW AVATAR ================================ */
+
+    if (newAvatar?.publicId) {
+      try {
+        await cloudinary.uploader.destroy(newAvatar.publicId);
+      } catch (cloudinaryError) {
+        console.error("Avatar cleanup failed:", cloudinaryError);
+      }
+    }
+
     next(error);
   }
 };

@@ -9,8 +9,6 @@ import {
 } from "../controllers/v1.category.controller";
 import upload from "../../middlewares/multer.middleware";
 
-
-
 const router = express.Router();
 
 /* =============================== ROUTES ================================ */
@@ -21,7 +19,7 @@ router.post(
   createCategory,
 );
 router.get("/categories/tree", getCategoriesTree);
-router.get("/categories", getCategories); // ✅ IMPORTANT
+router.get("/categories", getCategories);
 router.patch(
   "/categories/:id",
   upload.single("image"), // ✅ ADD

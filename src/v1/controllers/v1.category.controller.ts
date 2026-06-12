@@ -3,11 +3,17 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../../types/auth.type";
 import { uploadImage } from "../../middlewares/image.upload";
-import { createCategoryService, deleteCategoryService, getCategoriesService, getCategoryTreeService, updateCategoryService } from "../../services/category.service";
+import {
+  createCategoryService,
+  deleteCategoryService,
+  getCategoriesService,
+  getCategoryTreeService,
+  updateCategoryService,
+} from "../../services/category.service";
 import Category from "../../models/Category.model";
 import cloudinary from "../../utils/cloudinary";
 import Product from "../../models/Product.model";
-
+import { AppError } from "../../utils/AppError";
 
 /* =============================== CREATE ================================ */
 
@@ -16,11 +22,21 @@ export const createCategory = async (
   res: Response,
   next: NextFunction,
 ) => {
+  let image = null;
   try {
-    let image = null;
-
     if (req.file) {
       image = await uploadImage(req.file, "nexcart/categories", 800, 80);
+    }
+    const parentId = req.body.parent;
+
+    if (parentId) {
+      const parentExists = await Category.exists({
+        _id: parentId,
+      });
+
+      if (!parentExists) {
+        throw new AppError("Parent category not found", 404);
+      }
     }
 
     const payload = {
@@ -36,6 +52,9 @@ export const createCategory = async (
       data: result,
     });
   } catch (err) {
+    if (image?.publicId) {
+      await cloudinary.uploader.destroy(image.publicId);
+    }
     next(err);
   }
 };
@@ -86,6 +105,11 @@ export const updateCategory = async (
   res: Response,
   next: NextFunction,
 ) => {
+  let newImage: {
+    url: string;
+    publicId: string;
+  } | null = null;
+
   try {
     const id = req.params.id as string;
 
@@ -94,39 +118,35 @@ export const updateCategory = async (
     const existing = await Category.findById(id);
 
     if (!existing) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found",
-      });
+      throw new AppError("Category not found", 404);
     }
 
-    const payload: any = {
+    const payload: Record<string, any> = {
       ...req.body,
     };
 
-    /* =============================== REMOVE IMAGE ================================ */
+    /* =============================== VALIDATE PARENT ================================ */
 
-    if (req.body.removeImage === "true") {
-      if (existing.image?.publicId) {
-        await cloudinary.uploader.destroy(existing.image.publicId);
+    if (payload.parent) {
+      const parentExists = await Category.exists({
+        _id: payload.parent,
+      });
+
+      if (!parentExists) {
+        throw new AppError("Parent category not found", 404);
       }
 
-      payload.image = null;
+      if (payload.parent === id) {
+        throw new AppError("Category cannot be its own parent", 400);
+      }
     }
 
-    /* =============================== UPDATE IMAGE ================================ */
+    /* =============================== UPLOAD NEW IMAGE ================================ */
 
     if (req.file) {
-      if (existing.image?.publicId) {
-        await cloudinary.uploader.destroy(existing.image.publicId);
-      }
+      newImage = await uploadImage(req.file, "nexcart/categories", 800, 80);
 
-      payload.image = await uploadImage(
-        req.file,
-        "nexcart/categories",
-        800,
-        80,
-      );
+      payload.image = newImage;
     }
 
     /* =============================== UPDATE CATEGORY ================================ */
@@ -138,8 +158,18 @@ export const updateCategory = async (
       message: "Category updated successfully",
       data: result,
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    /* =============================== CLEANUP NEW IMAGE ================================ */
+
+    if (newImage?.publicId) {
+      try {
+        await cloudinary.uploader.destroy(newImage.publicId);
+      } catch (cloudinaryError) {
+        console.error("Cloudinary cleanup failed:", cloudinaryError);
+      }
+    }
+
+    next(error);
   }
 };
 
@@ -158,10 +188,7 @@ export const deleteCategory = async (
     const existing = await Category.findById(id);
 
     if (!existing) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found",
-      });
+      throw new AppError("Category not found", 404);
     }
 
     /* =============================== CHECK PRODUCTS ================================ */

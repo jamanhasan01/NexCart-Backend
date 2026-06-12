@@ -11,6 +11,8 @@ import {
 } from "../../services/product.service";
 import cloudinary from "../../utils/cloudinary";
 import Product from "../../models/Product.model";
+import Category from "../../models/Category.model";
+import { AppError } from "../../utils/AppError";
 
 /* =============================== CREATE PRODUCT ================================ */
 export const createProduct = async (
@@ -45,6 +47,15 @@ export const createProduct = async (
         success: false,
         message: "Required fields are missing",
       });
+    }
+
+    const isExist = await Category.exists({
+      _id: category,
+    });
+    console.log({ isExist });
+
+    if (!isExist) {
+      throw new AppError("Category not found", 404);
     }
 
     if (images?.length) {
@@ -85,11 +96,9 @@ export const createProduct = async (
       data: product,
     });
   } catch (error) {
-    const results = await Promise.all(
+    await Promise.all(
       uploadedImages.map((img) => cloudinary.uploader.destroy(img.publicId)),
     );
-    console.log("Delete results:", results);
-    console.log({ uploadedImages });
 
     next(error);
   }

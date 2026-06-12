@@ -78,6 +78,7 @@ export const getCategoriesService = async (query: any) => {
   const createdFrom = query.createdFrom as string | undefined;
   const createdTo = query.createdTo as string | undefined;
 
+
   if (parent === "null") {
     filter.parent = null;
   } else if (parent) {
@@ -110,7 +111,9 @@ export const getCategoriesService = async (query: any) => {
 
   if (parentId) {
     const [parentDoc, children] = await Promise.all([
-      Category.findById(parentId).select(projection || "").lean(),
+      Category.findById(parentId)
+        .select(projection || "")
+        .lean(),
       Category.find({ parent: parentId })
         .sort({ order: 1 })
         .select(projection || "")
@@ -155,7 +158,7 @@ export const getCategoriesService = async (query: any) => {
     meta: {
       total,
       page: usePagination ? page : 1,
-      limit: usePagination ? limit ?? data.length : data.length,
+      limit: usePagination ? (limit ?? data.length) : data.length,
       hasMore: usePagination && limit ? page * limit < total : false,
     },
   };
