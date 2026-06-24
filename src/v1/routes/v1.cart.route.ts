@@ -5,7 +5,7 @@ import { verifyToken } from '../../middlewares/auth.middleware'
 
 const router = Router()
 
-router.post('/cart/add', verifyToken, addToCart)
+router.post('/cart', verifyToken, addToCart)
 router.get('/cart', verifyToken, getCart)
 
 router.patch('/cart/update', verifyToken, updateCartItem)

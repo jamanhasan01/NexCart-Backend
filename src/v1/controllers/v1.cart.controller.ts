@@ -188,7 +188,7 @@ export const removeCartItem = async (
 
     await cart.save();
 
-    res.json({ message: "Removed form cart", data: cart });
+    res.json({ message: "Removed form cart", data:cart });
   } catch (error) {
     next(error);
   }

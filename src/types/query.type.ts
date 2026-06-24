@@ -12,7 +12,7 @@ export interface IProductQuery {
   isCombo?: string;
   isFlashDeal?: string;
   isTrending?: string;
-  isAdmin?:string;
+  isAdmin?: string;
 }
 
 export interface IOrderQuery {

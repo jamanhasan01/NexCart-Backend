@@ -20,9 +20,7 @@ export interface ICategory extends Document {
   icon?: string | null;
 
   image?: ICategoryImage | null;
-
-  isActive: boolean;
-
+  status: "active" | "draft";
   createdAt: Date;
   updatedAt: Date;
 }

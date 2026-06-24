@@ -52,7 +52,6 @@ export const createProduct = async (
     const isExist = await Category.exists({
       _id: category,
     });
-    
 
     if (!isExist) {
       throw new AppError("Category not found", 404);
@@ -125,6 +124,10 @@ export const getAllProduct = async (
     const isFlashDeal = (query.isFlashDeal as string) || "";
     const isTrending = (query.isTrending as string) || "";
     const isAdmin = (query.isAdmin as string) || "";
+
+
+
+    
 
     const select = query.select
       ? (query.select as string).split(",").join(" ")

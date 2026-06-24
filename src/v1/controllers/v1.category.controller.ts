@@ -58,7 +58,23 @@ export const createCategory = async (
     next(err);
   }
 };
+export const getSingleCategory = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  const CategoryId = req.params.id;
+  try {
+    const category = await Category.findById(CategoryId);
 
+    return res.status(200).json({
+      success: true,
+      data: category,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 /* =============================== GET TREE ================================ */
 
 export const getCategoriesTree = async (
@@ -113,6 +129,7 @@ export const updateCategory = async (
   try {
     const id = req.params.id as string;
 
+
     /* =============================== FIND EXISTING ================================ */
 
     const existing = await Category.findById(id);
@@ -124,7 +141,9 @@ export const updateCategory = async (
     const payload: Record<string, any> = {
       ...req.body,
     };
-
+    if (payload.parent === "") {
+      payload.parent = null;
+    }
     /* =============================== VALIDATE PARENT ================================ */
 
     if (payload.parent) {

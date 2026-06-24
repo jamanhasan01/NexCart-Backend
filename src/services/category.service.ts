@@ -72,12 +72,11 @@ export const getCategoriesService = async (query: any) => {
 
   const parentId = query.parentId as string | undefined;
   const parent = query.parent as string | undefined;
-  const isActive = parseBoolean(query.isActive);
-  const name = query.name as string | undefined;
+  const status = query.status;
+  const search = query.search as string | undefined;
   const ids = toArray(query.ids).filter(Boolean);
   const createdFrom = query.createdFrom as string | undefined;
   const createdTo = query.createdTo as string | undefined;
-
 
   if (parent === "null") {
     filter.parent = null;
@@ -85,12 +84,12 @@ export const getCategoriesService = async (query: any) => {
     filter.parent = parent;
   }
 
-  if (typeof isActive === "boolean") {
-    filter.isActive = isActive;
+  if (status && status !== "all") {
+    filter.status = status;
   }
 
-  if (name) {
-    filter.name = { $regex: new RegExp(escapeRegex(name), "i") };
+  if (search) {
+    filter.name = { $regex: new RegExp(escapeRegex(search), "i") };
   }
 
   if (ids.length > 0) {

@@ -22,7 +22,7 @@ const categorySchema = new mongoose.Schema<ICategory>(
     parent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-      default: null, 
+      default: null,
     },
 
     /* =============================== ORDER ================================ */
@@ -38,9 +38,10 @@ const categorySchema = new mongoose.Schema<ICategory>(
       default: null,
     },
 
-    isActive: {
-      type: Boolean,
-      default: true,
+    status: {
+      type: String,
+      enum: ["active", "draft"],
+      default: "active",
     },
   },
   { timestamps: true },
